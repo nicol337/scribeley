@@ -1,18 +1,16 @@
-application: your-app-id
+application: scribeley
 version: 1
 runtime: python27
 api_version: 1
 threadsafe: true
 
 handlers:
-- url: /stylesheets
-  static_dir: stylesheets
 - url: /bootstrap
   static_dir: bootstrap
 - url: /css
   static_dir: css
 - url: /.*
-  script: guestbook.application
+  script: blog.application
 
 libraries:
 - name: webapp2

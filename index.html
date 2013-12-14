@@ -71,7 +71,7 @@
             <p>A testing blog for testing</p>
             <!-- <p><a href="#" class="btn btn-primary btn-large">Learn more &raquo;</a></p> -->
           </div>
-           <form action="/sign?guestbook_name={{ guestbook_name }}" method="post">
+           <form action="/sign?blog_name={{ blog_name }}" method="post">
           <div><textarea name="content" rows="3" cols="60"></textarea></div>
           <div><input type="submit" value="Sign Guestbook"></div>
           </form>
@@ -79,7 +79,7 @@
     <hr>
 
     <form>Guestbook name:
-      <input value="{{ guestbook_name }}" name="guestbook_name">
+      <input value="{{ blog_name }}" name="blog_name">
       <input type="submit" value="switch">
     </form>
 
@@ -87,16 +87,16 @@
 
     <a href="{{ url|safe }}">{{ url_linktext }}</a>
           <div>
-            {% for greeting in greetings %}
+            {% for blogpost in blogposts %}
             <div class="span12">
-              {% if greeting.author %}
-               <b>{{ greeting.author.nickname() }}</b> wrote:
+              {% if blogpost.author %}
+               <b>{{ blogpost.author.nickname() }}</b> wrote:
               {% else %}
                 An anonymous person wrote:
               {% endif %}
              
               <h2>Heading</h2>
-              <p>{{ greeting.content }}</p>
+              <p>{{ blogpost.content }}</p>
               <p><a class="btn" href="#">View details &raquo;</a></p>
             </div>
             {% endfor %}
