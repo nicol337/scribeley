@@ -70,6 +70,11 @@
       <div class="hero-unit">
         <h1>Welcome Back, {{user_str}}!</h1>
       </div>
+      <p>create a new blog titled...</p>
+      <form action="/userhome/{{user}}" method="post">
+          <div><textarea name="blog_title" rows="3" cols="60"></textarea></div>
+          <div><input type="submit" value="gimme the blog"></div>
+      </form>
     </div>
 </div><!--/.fluid-container-->
 
