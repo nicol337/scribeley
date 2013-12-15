@@ -175,8 +175,44 @@ class HomePage(webapp2.RequestHandler):
 #          template = JINJA_ENVIRONMENT.get_template('blog_home.html')
 #          self.response.write(template.render(template_values))
 
+class UserHome(webapp2.RequestHandler):
+
+    def get(self, user_str):
+        user = users.get_current_user()
+
+        if users.get_current_user():
+            template_url= 'user_home_page.html'
+            url = users.create_logout_url(self.request.uri)
+            url_linktext = 'Logout'
+        else:
+            template_url = 'home_page.html'
+            url = users.create_login_url(self.request.uri)
+            url_linktext = 'Login'
+
+        blog1 = Blog(author=user,title="title")
+        blog1.put()
+        # blogs = db.Query(Blog)
+        # blogs.filter("author = ", user)
+        # blogs.fetch(limit=10)
+
+
+        blog_query= db.GqlQuery("SELECT * FROM Blog " +
+                "WHERE author = :1", user)
+        blogs = blog_query.run(limit=10)
+
+        template_values = { 
+            'user' : user,
+            'url': url,
+            'url_linktext': url_linktext,
+            'user_str' : user_str,
+            'blogs' : blogs
+        } 
+        template = JINJA_ENVIRONMENT.get_template(template_url)
+        self.response.write(template.render(template_values))
+
 application = webapp2.WSGIApplication([
     ('/', HomePage),
+    (r'/userhome/(.*)', UserHome)
     # ('/blog', BlogPage),
     # ('/sign', Blog),
 ], debug=True)

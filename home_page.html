@@ -36,23 +36,16 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="brand" href="#">Scribeley</a>
+          <a class="brand" href="http://scribeley.appspot.com">Scribeley</a>
           <div class="nav-collapse collapse">
             <ul class="nav">
-              <li class="active"><a href="#">Home</a></li>
-              <li><a href="#about">About</a></li>
-              <li><a href="#contact">Contact</a></li>
-              <li>
-              <p class="navbar-text pull-right">
               {% if user %}
-              Logged in as {{ user }}
-              </li>
+              <li><a href="/userhome/{{user}}">Home</a></li>
+              <li><p class="navbar-text pull-right">Logged in as {{ user }}</p></li>
               <li><a href="{{ url|safe }}">{{ url_linktext }}</a></li>
               {% else %}
-              <a href="{{ url|safe }}">Login</a>
+              <li><p class="navbar-text pull-right"><a href="{{ url|safe }}">Login</a></p></li>
               {% endif %}
-              </p>
-            </li>
             </ul>
           </div>
         </div>
@@ -60,15 +53,10 @@
     </div> <!-- end of nav -->
 
   </div>
-    {% if user %}
-    <!-- display user home page -->
-    
-    {% else %}
-     <div class="hero-unit">
+     <div class="hero-unit" align="center">
         <h1>Scribeley</h1>
-        <p>A student made bloggin site</p>
+        <p>A student made blogging site</p>
     </div>
-    {% endif %}
   </div>
 
   </body>
