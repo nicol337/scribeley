@@ -60,10 +60,10 @@
               <li class="nav-header">Other Blog Posts</li>
               <li class="active"><a href="#">Link</a></li>
               <!-- if there are other blogs posts, put top 5 recent ones here -->
-              <li class="nav-header">Other Blogs by This Person</li>
+              <!-- <li class="nav-header">Other Blogs by This Person</li> -->
               <!-- if there are other blogs by this person, put top 5 recent ones here -->
-              <li><a href="#">Link</a></li>
-              <li><a href="#">Link</a></li>
+              <!-- <li><a href="#">Link</a></li> -->
+              <!-- <li><a href="#">Link</a></li> -->
             </ul>
           </div><!--/.well -->
         </div><!--/span-->
@@ -73,17 +73,26 @@
             <p>A testing blog for testing</p>
             <!-- <p><a href="#" class="btn btn-primary btn-large">Learn more &raquo;</a></p> -->
           </div>
-           <form action="/sign?blog_name={{ blog_name }}" method="post">
+          { % if blog.author = get current user % }
+            <div class=>
+              <form action="/sign?blog_name={{ blog_name }}" method="post">
+              <div><textarea name="content" rows="3" cols="60"></textarea></div>
+              <div><input type="submit" value="Sign Guestbook"></div>
+          </form>
+            </div>
+          { % endif % }
+          <!-- if the current user is the user of this blog then have an edit and new post option -->
+           <!-- <form action="/sign?blog_name={{ blog_name }}" method="post">
           <div><textarea name="content" rows="3" cols="60"></textarea></div>
           <div><input type="submit" value="Sign Guestbook"></div>
-          </form>
+          </form> -->
 
     <hr>
 
-    <form>Guestbook name:
+    <!-- <form>Guestbook name:
       <input value="{{ blog_name }}" name="blog_name">
       <input type="submit" value="switch">
-    </form>
+    </form> -->
 
     <hr>
 
@@ -105,7 +114,6 @@
             </div><!--/span-->
           </div><!--/row-->
         </div><!--/span-->
-      </div><!--/row-->
 
       <hr>
 

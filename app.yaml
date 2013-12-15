@@ -5,10 +5,8 @@ api_version: 1
 threadsafe: true
 
 handlers:
-- url: /bootstrap
-  static_dir: bootstrap
-- url: /css
-  static_dir: css
+- url: /bootstrap/css
+  static_dir: bootstrap/css
 - url: /.*
   script: blog.application
 

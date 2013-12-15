@@ -14,6 +14,25 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     extensions=['jinja2.ext.autoescape'],
     autoescape=True)
 
+MAIN_PAGE_FOOTER_TEMPLATE = """\
+    <form action="/sign?%s" method="post">
+      <div><textarea name="content" rows="3" cols="200"></textarea></div>
+      <div><input type="submit" value="Sign Blog"></div>
+    </form>
+
+    <hr>
+
+    <form>Blog name:
+      <input value="%s" name="blog_name">
+      <input type="submit" value="switch">
+    </form>
+
+    <a href="%s">%s</a>
+
+  </body>
+</html>
+"""
+
 DEFAULT_BLOG_TITLE = 'default_blog'
 DEFAULT_BLOG_POST_TITLE = 'New_Post'
 
@@ -48,7 +67,8 @@ def get_posts_with_tag(blog_title, tag, limit_count):
 
 def get_blogs(user_name, limit_count):
     results = Blog.all()
-    results.ancestor(user_key(user_name))
+    if user_name():
+        results.ancestor(user_key(user_name))
     if limit_count:
         results.fetch(limit_count)
     return results
@@ -67,30 +87,96 @@ class Blogpost(db.Model):
 class HomePage(webapp2.RequestHandler):
 
     def get(self):
-        blog_name = self.request.get('blog_name',
-        #                                   DEFAULT_BLOG_TITLE)
-        # blogposts_query = Blogpost.query(
-        #     ancestor=blog_key(blog_name)).order(-Blogpost.date)
-        # blogposts = blogposts_query.fetch(10)
+        user = users.get_current_user()
 
-        # if users.get_current_user():
-        #     url = users.create_logout_url(self.request.uri)
-        #     url_linktext = 'Logout'
-        # else:
-        #     url = users.create_login_url(self.request.uri)
-        #     url_linktext = 'Login'
+        if users.get_current_user():
+            url = users.create_logout_url(self.request.uri)
+            url_linktext = 'Logout'
+        else:
+            url = users.create_login_url(self.request.uri)
+            url_linktext = 'Login'
 
-        template_values = {
-            'blogposts': blogposts,
-            'blog_name': urllib.quote_plus(blog_name),
+        template_values = { 
+            'user' : user,
             'url': url,
-            'url_linktext': url_linktext,
-        }
-
-        template = JINJA_ENVIRONMENT.get_template('blog_home.html')
+            'url_linktext': url_linktext
+        }   
+    
+        template = JINJA_ENVIRONMENT.get_template('home_page.html')
         self.response.write(template.render(template_values))
+
+
+# class MainPage(webapp2.RequestHandler):
+
+#     def get(self):
+#         blog_name = self.request.get('blog_name',
+#                                           DEFAULT_BLOG_NAME)
+#         blogposts_query = Blogpost.query(
+#             ancestor=blog_key(blog_name)).order(-Blogpost.date)
+#         blogposts = blogposts_query.fetch(10)
+
+#         if users.get_current_user():
+#             url = users.create_logout_url(self.request.uri)
+#             url_linktext = 'Logout'
+#         else:
+#             url = users.create_login_url(self.request.uri)
+#             url_linktext = 'Login'
+
+#         template_values = {
+#             'blogposts': blogposts,
+#             'blog_name': urllib.quote_plus(blog_name),
+#             'url': url,
+#             'url_linktext': url_linktext,
+#         }
+
+#         template = JINJA_ENVIRONMENT.get_template('blog_home.html')
+#         self.response.write(template.render(template_values))
+
+# class BlogPage(webapp2.RequestHandler):
+
+    # def get(self, blog_name)
+    
+#     def post(self, ):
+#         # We set the same parent key on the 'Blogpost' to ensure each Blogpost
+#         # is in the same entity group. Queries across the single entity group
+#         # will be consistent. However, the write rate to a single entity group
+#         # should be limited to ~1/second.
+
+#         # if user of this blog == users.get_current_user()
+
+#         blog_name = self.request.get('blog_name',
+#                                           DEFAULT_BLOG_NAME)
+
+#         blogposts = Blogpost(parent=blog_key(blog_name))
+
+#         if users.get_current_user():
+#             blogpost.author = users.get_current_user()
+
+#         blogpost.content = self.request.get('content')
+#         blogpost.put()
+
+#         query_params = {'blog_name': blog_name}
+#         self.redirect('/?' + urllib.urlencode(query_params))
+
+#         template_values = {
+#             'blogposts': blogposts,
+#             'blog_author' : 
+#             'blog_name': urllib.quote_plus(blog_name),
+#             'url': url,
+#             'url_linktext': url_linktext,
+#         }
+
+#         # <form action="/sign?blog_name={{ blog_name }}" method="post">
+#         #   <div><textarea name="content" rows="3" cols="60"></textarea></div>
+#         #   <div><input type="submit" value="Sign Guestbook"></div>
+#         #   </form>
+
+
+#          template = JINJA_ENVIRONMENT.get_template('blog_home.html')
+#          self.response.write(template.render(template_values))
 
 application = webapp2.WSGIApplication([
     ('/', HomePage),
-    ('/sign', Blog),
+    # ('/blog', BlogPage),
+    # ('/sign', Blog),
 ], debug=True)
