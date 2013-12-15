@@ -4,6 +4,7 @@ import urllib
 
 from google.appengine.api import users
 from google.appengine.ext import ndb
+from google.appengine.ext import db
 
 import jinja2
 import webapp2
@@ -16,7 +17,7 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 
 MAIN_PAGE_FOOTER_TEMPLATE = """\
     <form action="/sign?%s" method="post">
-      <div><textarea name="content" rows="3" cols="60"></textarea></div>
+      <div><textarea name="content" rows="3" cols="200"></textarea></div>
       <div><input type="submit" value="Sign Blog"></div>
     </form>
 
@@ -35,7 +36,6 @@ MAIN_PAGE_FOOTER_TEMPLATE = """\
 
 DEFAULT_BLOG_NAME = 'default_blog'
 
-
 # We set a parent key on the 'Blogposts' to ensure that they are all in the same
 # entity group. Queries across the single entity group will be consistent.
 # However, the write rate should be limited to ~1/second.
@@ -46,11 +46,19 @@ def blog_key(blog_name=DEFAULT_BLOG_NAME):
 
 
 
-class Blogpost(ndb.Model):
-    """Models an individual Blog entry with author, content, and date."""
-    author = ndb.UserProperty()
-    content = ndb.StringProperty(indexed=False)
-    date = ndb.DateTimeProperty(auto_now_add=True)
+
+# b = Blog(author=users.get_current_user(), title="Blog Title")
+# b.put()
+# user = [users.get_current_user()]
+# blogs_of_user = db.GqlQuery("SELECT * FROM Blog WHERE author IN :1", user)
+# for blog in blogs_of_user:
+#   blog.display stuff here
+
+class Blogpost(db.Model):
+    author = db.UserProperty(required=True)
+    blog = 
+    content = db.StringProperty(indexed=False)
+    date = db.DateTimeProperty(auto_now_add=True)
 
 
 
@@ -77,8 +85,17 @@ class MainPage(webapp2.RequestHandler):
             'url_linktext': url_linktext,
         }
 
-        template = JINJA_ENVIRONMENT.get_template('index.html')
+        template = JINJA_ENVIRONMENT.get_template('blog_home.html')
         self.response.write(template.render(template_values))
+
+class Blog_object(db.Model):
+    author = ndb.UserProperty(required=True)
+    title = ndb.StringProperty(required=True, indexed=False)
+
+    def get_ten_posts(self):
+        # query for blogposts which belong to this author and this blog
+
+    def get_all_posts(self):
 
 
 class Blog(webapp2.RequestHandler):

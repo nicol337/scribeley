@@ -21,16 +21,27 @@ DEFAULT_BLOG_POST_TITLE = 'New_Post'
 class Blog(db.Model):
     author = db.UserProperty(required=True)
     title = db.StringProperty(required=True)
-    def get_ten_posts():
-
-
-    def get_all_posts():
-
-
-
 
 def Blog_Key(title):
     return db.Key('Blog', title)
+
+def get_posts(blog_title, limit_count):
+    results = Blogpost.all()
+    results.ancestor(blog_key(blog_title))
+    results.order("-date")
+    if limit_count:
+        results.fetch(limit_count)
+    return results
+
+def get_posts_with_tag(blog_title, tag, limit_count):
+    results = Blogpost.all()
+    results.ancestor(blog_key(blog_title))
+    if tag:
+        results.filter("tags =", tag)
+    results.order("-date")
+    if limit_count:
+        results.fetch(limit_count)
+    return results
 
 
 class Blogpost(db.Model):
@@ -39,8 +50,8 @@ class Blogpost(db.Model):
     content = db.TextProperty()
     tags = db.StringListProperty()
     # results = db.GqlQuery("SELECT * FROM Blogpost WHERE tags = 'tech'")
-    #blog_name = self.request.get('blog_name', DEFAULT_BLOG_TITLE)
-    # blogpost = Blogpost(parent=blog_key(blog_name))
+    # get the current blog's name
+    # blogpost = Blogpost(parent=blog_key(blog_name), author = self.request.get('current_user'), title=self.request.get('blog_title'))
     date = db.DateTimeProperty(auto_now_add=True)
 
 
