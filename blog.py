@@ -180,10 +180,8 @@ class UserHome(webapp2.RequestHandler):
     def post(self, user_str):
         user = users.get_current_user()
 
-        blog_title = self.request.get('blog_title')
-
-        blog = Blog(author=user,title=blog_title)
-        blog.put()
+        new_blog = Blog(author=user,title=self.request.get("blog_title"))
+        new_blog.put()
 
         blog_query = db.GqlQuery("SELECT * FROM Blog " +
                 "WHERE author = :1 " +
@@ -231,8 +229,7 @@ class UserHome(webapp2.RequestHandler):
 
 
         blog_query= db.GqlQuery("SELECT * FROM Blog " +
-                "WHERE author = :1" + 
-                "ORDER BY title ASC" , user)
+                "WHERE author = :1", user)
         blogs = blog_query.run(limit=1000)
 
         template_values = { 
@@ -253,13 +250,11 @@ class BlogHome(webapp2.RequestHandler):
         blog_title = blog_name
 
         blog_query = db.GqlQuery("SELECT * FROM Blog " +
-                "WHERE author = :1 " +
-                "ORDER BY title ASC", user)
+                "WHERE author = :1 ", user)
         blogs = blog_query.run(limit=1000)
 
         blogpost_query = db.GqlQuery("SELECT * FROM Blogpost " +
-                "WHERE author = :1 " +
-                "ORDER BY title ASC", user)
+                "WHERE author = :1 ", user)
         blogposts = post_query.run(limit=10)
 
         if users.get_current_user():
@@ -305,8 +300,7 @@ class BlogHome(webapp2.RequestHandler):
         # blogs.fetch(limit=10)
 
         blog= db.GqlQuery("SELECT * FROM Blog " +
-                "WHERE author = :1" + 
-                "ORDER BY title ASC" , user)
+                "WHERE author = :1", user)
         blogs = blog_query.run(limit=1000)
 
         template_values = { 
@@ -321,8 +315,7 @@ class BlogHome(webapp2.RequestHandler):
 
 application = webapp2.WSGIApplication([
     ('/', HomePage),
-    (r'/userhome/(.*)', UserHome),
-    (r'/userhome/(.*)/bloghome/(.*)', BlogHome)
+    (r'/userhome/(.*)', UserHome)
     # ('/blog', BlogPage),
     # ('/sign', Blog),
 ], debug=True)
