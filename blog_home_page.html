@@ -63,6 +63,12 @@
           <li><a href="/blog/{{blog.title}}">{{ blog.title }}</a></li>
           </div>
           {% endfor %}
+          <li class="nav-header">Tags of {{blog_name}}</li>
+          {% for tag in blog_tags %}
+          <div>
+          <li><a href="/search/{{blog_name}}/{{tag}}">{{tag}}</a></li>
+          </div>
+          {% endfor %}
         </ul>
       </div><!--/.well -->
     </div><!--/span-->

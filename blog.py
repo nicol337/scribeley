@@ -154,11 +154,20 @@ class BlogHome(webapp2.RequestHandler):
                 "ORDER BY date DESC", blog_name)
         blogposts = blogpost_query.run(limit=10)
 
+        
+
         blogpost_content = {}
         for post in blogpost_query.run(limit=10):
             blogpost_content[post.title]=post.content
             if len(post.content) > 500:
                 blogpost_content[post.title]=post.content[:500]
+
+        blog_tags=[]
+        for post in blogpost_query.run(limit=10):
+            for tag in post.tags:
+                if tag not in blog_tags:
+                    blog_tags.append(tag)
+            
 
         blog_query = db.GqlQuery("SELECT * FROM Blog " +
                 "WHERE author = :1 " +
@@ -174,6 +183,7 @@ class BlogHome(webapp2.RequestHandler):
             'blog_name': blog_name,
             'one_blog': one_blog,
             'blogpost_content' : blogpost_content,
+            'blog_tags': blog_tags,
             'owner' : owner
         } 
         template = JINJA_ENVIRONMENT.get_template("blog_home_page.html")
@@ -246,9 +256,20 @@ class BlogpostPage(webapp2.RequestHandler):
         else:
             edit = False
 
+        blog_tags_query = db.GqlQuery("SELECT * FROM Blogpost " +
+                "WHERE blog = :1 " +
+                "ORDER BY date DESC", blog_name)
+
         blogpost_query = db.GqlQuery("SELECT * FROM Blogpost " +
                 "WHERE blog = :1 AND title = :2 " +
                 "ORDER BY date DESC", blog_name, blogpost_name)
+
+        blog_tags=[]
+        for post in blog_tags_query.run(limit=1000):
+            for tag in post.tags:
+                if tag not in blog_tags:
+                    blog_tags.append(tag)
+
         blogpost = blogpost_query.run(limit=1)
 
         blog_query = db.GqlQuery("SELECT * FROM Blog " +
@@ -265,6 +286,7 @@ class BlogpostPage(webapp2.RequestHandler):
             'blog_name': blog_name,
             'one_blog': one_blog,
             'owner' : owner,
+            'blog_tags' : blog_tags,
             'edit' : edit
         } 
 
@@ -296,10 +318,6 @@ class TagSearchPage(webapp2.RequestHandler):
                 owner = True
             else:
                 owner = False
-
-        # blogpost_query = db.GqlQuery("SELECT * FROM Blogpost " +
-        #         "WHERE blog = :1 AND tags = :2 " +
-        #         "ORDER BY date DESC", blog_name, tag_name)
         
         blogpost_query = db.GqlQuery("SELECT * FROM Blogpost " +
                 "WHERE blog = :1 AND tags = :2 " +
@@ -312,6 +330,16 @@ class TagSearchPage(webapp2.RequestHandler):
             blogpost_content[post.title]=post.content
             if len(post.content) > 500:
                 blogpost_content[post.title]=post.content[:500]
+
+        blog_tags_query = db.GqlQuery("SELECT * FROM Blogpost " +
+                "WHERE blog = :1 " +
+                "ORDER BY date DESC", blog_name)
+        blog_tags=[]
+        for post in blog_tags_query.run(limit=1000):
+            for tag in post.tags:
+                if tag not in blog_tags:
+                    blog_tags.append(tag)
+
 
         blog_query = db.GqlQuery("SELECT * FROM Blog " +
                 "WHERE author = :1 " +
@@ -328,6 +356,7 @@ class TagSearchPage(webapp2.RequestHandler):
             'blog_name': blog_name,
             'one_blog': one_blog,
             'tag_name' : tag_name,
+            'blog_tags' : blog_tags,
             'owner' : owner
         } 
 
