@@ -210,7 +210,7 @@ class BlogpostPage(webapp2.RequestHandler):
         new_content = self.request.get('blogpost_content')
         tag_str = self.request.get('blogpost_tags')
         new_tags = tag_str.split(',')
-        
+
         if edit and owner:
             for post in blogpost:
                 post.update(new_title, new_content, new_tags)
@@ -271,9 +271,73 @@ class BlogpostPage(webapp2.RequestHandler):
         template = JINJA_ENVIRONMENT.get_template("blog_post_page.html")
         self.response.write(template.render(template_values))
 
+class TagSearchPage(webapp2.RequestHandler):
+
+    def get(self, blog_name, tag_name):
+
+        user = users.get_current_user()
+        owner = False
+
+        if users.get_current_user():
+            log_in_out_url = users.create_logout_url(self.request.uri)
+            url_linktext = 'Logout'
+        else:
+            template_url = 'home_page.html'
+            log_in_out_url = users.create_login_url(self.request.uri)
+            url_linktext = 'Login'
+
+        one_blog_query = db.GqlQuery("SELECT * FROM Blog " +
+                "WHERE title = :1", blog_name)
+
+        one_blog = one_blog_query.run(limit=1)
+        
+        for blog in one_blog:
+            if user == blog.author:
+                owner = True
+            else:
+                owner = False
+
+        # blogpost_query = db.GqlQuery("SELECT * FROM Blogpost " +
+        #         "WHERE blog = :1 AND tags = :2 " +
+        #         "ORDER BY date DESC", blog_name, tag_name)
+        
+        blogpost_query = db.GqlQuery("SELECT * FROM Blogpost " +
+                "WHERE blog = :1 AND tags = :2 " +
+                "ORDER BY date DESC", blog_name, tag_name)
+        blogposts = blogpost_query.run(limit=10)
+
+        blogpost_content = {}
+
+        for post in blogpost_query.run(limit=10):
+            blogpost_content[post.title]=post.content
+            if len(post.content) > 500:
+                blogpost_content[post.title]=post.content[:500]
+
+        blog_query = db.GqlQuery("SELECT * FROM Blog " +
+                "WHERE author = :1 " +
+                "ORDER BY title", user)
+        blogs = blog_query.run(limit=1000)   
+
+        template_values = { 
+            'user' : user,
+            'url': log_in_out_url,
+            'url_linktext': url_linktext,
+            'blogs' : blogs,
+            'blogposts' : blogposts,
+            'blogpost_content': blogpost_content,
+            'blog_name': blog_name,
+            'one_blog': one_blog,
+            'tag_name' : tag_name,
+            'owner' : owner
+        } 
+
+        template = JINJA_ENVIRONMENT.get_template("tag_search_page.html")
+        self.response.write(template.render(template_values))
+
 application = webapp2.WSGIApplication([
     ('/', HomePage),
     (r'/user/', UserHome),
     (r'/blog/(.*)', BlogHome),
     (r'/post/(.*)/(.*)/(.*)', BlogpostPage),
+    (r'/search/(.*)/(.*)', TagSearchPage)
 ], debug=True)
