@@ -79,6 +79,7 @@
           Title<div><textarea id="blogpost_title" name="blogpost_title" rows="1" cols="60"></textarea>
           </div>
           Content<div><textarea id="blogpost_content" name="blogpost_content" rows="5" cols="60"></textarea></div>
+          Tags (separated by commas) <div><textarea id="blogpost_tags" name="blogpost_tags" rows="1" cols="60"></textarea></div>
           <div><input type="submit" value="post dat post"></div>
       </form>
       {% endif %}
@@ -88,6 +89,11 @@
         <h3>{{blogpost.title}}</h3>
         <h4>{{blogpost_content[blogpost.title]}}</h4>
         <h6>{{blogpost.date}}</h6>
+        <h6>tags   |
+        {% for tag in blogpost.tags %}
+          {{tag}} | 
+        {% endfor %}
+        </h6>
         <button type="button" class="btn btn-default"><a href="/post/{{blog_name}}/{{blogpost.title}}/view">view more</a></button>
       </div>
       {% endfor %}

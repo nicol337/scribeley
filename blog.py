@@ -45,9 +45,10 @@ class Blogpost(db.Model):
     blog = db.StringProperty(required=True)
     date = db.DateTimeProperty(auto_now_add=True)
 
-    def update(self,new_title,new_content):
+    def update(self,new_title,new_content, new_tags):
         self.title = new_title
         self.content = new_content
+        self.tags = new_tags
         self.put()
 
 class HomePage(webapp2.RequestHandler):
@@ -114,7 +115,11 @@ class BlogHome(webapp2.RequestHandler):
         if self.request.get('blogpost_title') and self.request.get('blogpost_content'):
             blogpost_title = self.request.get('blogpost_title')
             blogpost_content = self.request.get('blogpost_content')
-            blogpost = Blogpost(author=users.get_current_user(), title=blogpost_title, content=blogpost_content, blog=blog_name)
+            
+            blogpost_tags = self.request.get('blogpost_tags')
+            tag_tokens = blogpost_tags.split(',')
+
+            blogpost = Blogpost(author=users.get_current_user(), title=blogpost_title, content=blogpost_content, blog=blog_name, tags=tag_tokens)
             blogpost.put()
 
             self.redirect('/blog/' + blog_name)
@@ -203,10 +208,12 @@ class BlogpostPage(webapp2.RequestHandler):
         blogpost = blogpost_query.run(limit=1)
         new_title = self.request.get('blogpost_title')
         new_content = self.request.get('blogpost_content')
-
+        tag_str = self.request.get('blogpost_tags')
+        new_tags = tag_str.split(',')
+        
         if edit and owner:
             for post in blogpost:
-                post.update(new_title, new_content)
+                post.update(new_title, new_content, new_tags)
 
         self.redirect('/post/'+ blog_name+'/'+new_title+"/view")
 
