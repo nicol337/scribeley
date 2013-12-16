@@ -84,9 +84,9 @@
       {% endif %}
       <h2>Previous Posts</h2>
       {% for blogpost in blogposts %}
-      <div class="span4">
+      <div class="span8">
         <h3>{{blogpost.title}}</h3>
-        <h4>{{blogpost.content}}</h4>
+        <h4>{{blogpost_content[blogpost.title]}}</h4>
         <h6>{{blogpost.date}}</h6>
         <button type="button" class="btn btn-default"><a href="/post/{{blog_name}}/{{blogpost.title}}/view">view more</a></button>
       </div>

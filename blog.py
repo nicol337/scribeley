@@ -144,12 +144,16 @@ class BlogHome(webapp2.RequestHandler):
             else:
                 owner = False
 
-
         blogpost_query = db.GqlQuery("SELECT * FROM Blogpost " +
                 "WHERE blog = :1 " +
                 "ORDER BY date DESC", blog_name)
         blogposts = blogpost_query.run(limit=10)
 
+        blogpost_content = {}
+        for post in blogpost_query.run(limit=10):
+            blogpost_content[post.title]=post.content
+            if len(post.content) > 500:
+                blogpost_content[post.title]=post.content[:500]
 
         blog_query = db.GqlQuery("SELECT * FROM Blog " +
                 "WHERE author = :1 " +
@@ -164,6 +168,7 @@ class BlogHome(webapp2.RequestHandler):
             'blogposts' : blogposts,
             'blog_name': blog_name,
             'one_blog': one_blog,
+            'blogpost_content' : blogpost_content,
             'owner' : owner
         } 
         template = JINJA_ENVIRONMENT.get_template("blog_home_page.html")
