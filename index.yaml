@@ -4,9 +4,10 @@ indexes:
   properties:
   - name: date
     direction: desc
-kind: Blog
+- kind: Blog
   properties:
   - name: author
   - name: title
+    direction: desc
 
 
