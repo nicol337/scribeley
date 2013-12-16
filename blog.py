@@ -14,24 +14,24 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     extensions=['jinja2.ext.autoescape'],
     autoescape=True)
 
-MAIN_PAGE_FOOTER_TEMPLATE = """\
-    <form action="/sign?%s" method="post">
-      <div><textarea name="content" rows="3" cols="200"></textarea></div>
-      <div><input type="submit" value="Sign Blog"></div>
-    </form>
+# MAIN_PAGE_FOOTER_TEMPLATE = """\
+#     <form action="/sign?%s" method="post">
+#       <div><textarea name="content" rows="3" cols="200"></textarea></div>
+#       <div><input type="submit" value="Sign Blog"></div>
+#     </form>
 
-    <hr>
+#     <hr>
 
-    <form>Blog name:
-      <input value="%s" name="blog_name">
-      <input type="submit" value="switch">
-    </form>
+#     <form>Blog name:
+#       <input value="%s" name="blog_name">
+#       <input type="submit" value="switch">
+#     </form>
 
-    <a href="%s">%s</a>
+#     <a href="%s">%s</a>
 
-  </body>
-</html>
-"""
+#   </body>
+# </html>
+# """
 
 class Blog(db.Model):
     author = db.UserProperty(required=True)
@@ -43,10 +43,6 @@ class Blogpost(db.Model):
     content = db.TextProperty()
     tags = db.StringListProperty()
     blog = db.StringProperty(required=True)
-    # reference = db.ReferenceProperty(Blog, required=True)
-    # results = db.GqlQuery("SELECT * FROM Blogpost WHERE tags = 'tech'")
-    # get the current blog's name
-    # blogpost = Blogpost(parent=blog_key(blog_name), author = self.request.get('current_user'), title=self.request.get('blog_title'))
     date = db.DateTimeProperty(auto_now_add=True)
 
 class HomePage(webapp2.RequestHandler):
@@ -73,7 +69,6 @@ class HomePage(webapp2.RequestHandler):
 class UserHome(webapp2.RequestHandler):
 
     def post(self):
-        # user = users.get_current_user()
         if self.request.get('blog_title'):
             new_blog_name = self.request.get('blog_title')
             new_blog = Blog(author=users.get_current_user(),title=new_blog_name)
@@ -124,10 +119,7 @@ class BlogHome(webapp2.RequestHandler):
     def get(self, blog_name):
 
         user = users.get_current_user()
-
-        blog = db.GqlQuery("SELECT * FROM Blog " +
-                "WHERE title = :1 " , blog_name)
-
+        owner = False
         if users.get_current_user():
             log_in_out_url = users.create_logout_url(self.request.uri)
             url_linktext = 'Logout'
@@ -136,9 +128,21 @@ class BlogHome(webapp2.RequestHandler):
             log_in_out_url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
 
+        one_blog_query = db.GqlQuery("SELECT * FROM Blog " +
+                "WHERE title = :1", blog_name)
+
+        one_blog = one_blog_query.run(limit=1)
+        
+        for blog in one_blog:
+            if user == blog.author:
+                owner = True
+            else:
+                owner = False
+
+
         blogpost_query = db.GqlQuery("SELECT * FROM Blogpost " +
-                "WHERE author = :1 AND blog = :2 " +
-                "ORDER BY date DESC", user, blog_name)
+                "WHERE blog = :1 " +
+                "ORDER BY date DESC", blog_name)
         blogposts = blogpost_query.run(limit=10)
 
 
@@ -147,16 +151,14 @@ class BlogHome(webapp2.RequestHandler):
                 "ORDER BY title", user)
         blogs = blog_query.run(limit=1000)    
 
-        owner = True
-
         template_values = { 
             'user' : user,
             'url': log_in_out_url,
             'url_linktext': url_linktext,
             'blogs' : blogs,
-            'blog' : blog,
             'blogposts' : blogposts,
             'blog_name': blog_name,
+            'one_blog': one_blog,
             'owner' : owner
         } 
         template = JINJA_ENVIRONMENT.get_template("blog_home_page.html")
