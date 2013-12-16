@@ -4,6 +4,7 @@ indexes:
   properties:
   - name: date
     direction: desc
+    
 - kind: Blog
   properties:
   - name: author
