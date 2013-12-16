@@ -14,27 +14,7 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     extensions=['jinja2.ext.autoescape'],
     autoescape=True)
 
-ViewingBlog = "default_blog_name"
 ViewingPage = 0
-
-# MAIN_PAGE_FOOTER_TEMPLATE = """\
-#     <form action="/sign?%s" method="post">
-#       <div><textarea name="content" rows="3" cols="200"></textarea></div>
-#       <div><input type="submit" value="Sign Blog"></div>
-#     </form>
-
-#     <hr>
-
-#     <form>Blog name:
-#       <input value="%s" name="blog_name">
-#       <input type="submit" value="switch">
-#     </form>
-
-#     <a href="%s">%s</a>
-
-#   </body>
-# </html>
-# """
 
 class Blog(db.Model):
     author = db.UserProperty(required=True)
@@ -127,7 +107,6 @@ class BlogHome(webapp2.RequestHandler):
 
             self.redirect('/blog/' + blog_name + '/')
         else:
-            #self.redirect('/blog/' + blog_name + str(ViewingPage))
             self.redirect('/blog/' + blog_name + '/')
 
 
@@ -163,25 +142,28 @@ class BlogHome(webapp2.RequestHandler):
                 "WHERE blog = :1 " +
                 "ORDER BY date DESC", blog_name)
 
-        if page_number: 
-            blogposts = blogpost_query.run(offset=ViewingPage*10,limit=10)
-        else:
-            blogposts = blogpost_query.run(limit=10)
+        blogposts = blogpost_query.run(offset=(ViewingPage+1)*10)
 
-        if blogpost_query.count() > 10:
+        number_of_posts_left = 0
+
+        for blog in blogposts:
+            number_of_posts_left+=1
+
+        if number_of_posts_left:
             moreposts = True
         else:
             moreposts = False
 
+        blogposts = blogpost_query.run(offset=ViewingPage*10,limit=10)
 
         blogpost_content = {}
-        for post in blogpost_query.run(limit=10):
+        for post in blogpost_query.run(offset=ViewingPage*10,limit=10):
             blogpost_content[post.title]=post.content
             if len(post.content) > 500:
                 blogpost_content[post.title]=post.content[:500]
 
         blog_tags=[]
-        for post in blogpost_query.run(limit=10):
+        for post in blogpost_query.run():
             for tag in post.tags:
                 if tag not in blog_tags:
                     blog_tags.append(tag)
@@ -315,7 +297,12 @@ class BlogpostPage(webapp2.RequestHandler):
 
 class TagSearchPage(webapp2.RequestHandler):
 
-    def get(self, blog_name, tag_name):
+    def get(self, blog_name, tag_name, page_number):
+
+        if page_number:
+            ViewingPage = int(page_number[0])
+        else:
+            ViewingPage = 0
 
         user = users.get_current_user()
         owner = False
@@ -342,11 +329,26 @@ class TagSearchPage(webapp2.RequestHandler):
         blogpost_query = db.GqlQuery("SELECT * FROM Blogpost " +
                 "WHERE blog = :1 AND tags = :2 " +
                 "ORDER BY date DESC", blog_name, tag_name)
-        blogposts = blogpost_query.run(limit=10)
+
+        blogposts = blogpost_query.run(offset=(ViewingPage+1)*10)
+
+        number_of_posts_left = 0
+
+        for blog in blogposts:
+            number_of_posts_left+=1
+
+        if number_of_posts_left:
+            moreposts = True
+        else:
+            moreposts = False
+
+        blogposts = blogpost_query.run(offset=ViewingPage*10,limit=10)
+
+        # blogposts = blogpost_query.run(limit=10)
 
         blogpost_content = {}
 
-        for post in blogpost_query.run(limit=10):
+        for post in blogpost_query.run(offset=ViewingPage*10,limit=10):
             blogpost_content[post.title]=post.content
             if len(post.content) > 500:
                 blogpost_content[post.title]=post.content[:500]
@@ -377,7 +379,9 @@ class TagSearchPage(webapp2.RequestHandler):
             'one_blog': one_blog,
             'tag_name' : tag_name,
             'blog_tags' : blog_tags,
-            'owner' : owner
+            'owner' : owner,
+            'moreposts': moreposts,
+            'page_counter': ViewingPage
         } 
 
         template = JINJA_ENVIRONMENT.get_template("tag_search_page.html")
@@ -388,5 +392,5 @@ application = webapp2.WSGIApplication([
     (r'/user/', UserHome),
     (r'/blog/(.*)/(.*)', BlogHome),
     (r'/post/(.*)/(.*)/(.*)', BlogpostPage),
-    (r'/search/(.*)/(.*)', TagSearchPage)
+    (r'/search/(.*)/(.*)/(.*)', TagSearchPage)
 ], debug=True)

@@ -66,7 +66,7 @@
           <li class="nav-header">Tags of {{blog_name}}</li>
           {% for tag in blog_tags %}
           <div>
-          <li><a href="/search/{{blog_name}}/{{tag}}">{{tag}}</a></li>
+          <li><a href="/search/{{blog_name}}/{{tag}}/">{{tag}}</a></li>
           </div>
           {% endfor %}
         </ul>
@@ -97,7 +97,7 @@
         <h6>{{blogpost.date}}</h6>
         <h6>tags |
         {% for tag in blogpost.tags %}
-          <a href="/search/{{blog_name}}/{{tag}}">{{tag}} </a>  
+          <a href="/search/{{blog_name}}/{{tag}}/">{{tag}} </a>  
         {% endfor %}
         </h6>
         <button type="button" class="btn btn-default"><a href="/post/{{blog_name}}/{{blogpost.title}}/view">view more</a></button>
