@@ -14,6 +14,9 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     extensions=['jinja2.ext.autoescape'],
     autoescape=True)
 
+ViewingBlog = "default_blog_name"
+ViewingPage = 0
+
 # MAIN_PAGE_FOOTER_TEMPLATE = """\
 #     <form action="/sign?%s" method="post">
 #       <div><textarea name="content" rows="3" cols="200"></textarea></div>
@@ -79,7 +82,7 @@ class UserHome(webapp2.RequestHandler):
             new_blog_name = self.request.get('blog_title')
             new_blog = Blog(author=users.get_current_user(),title=new_blog_name)
             new_blog.put()
-            self.redirect('/blog/'+new_blog_name)
+            self.redirect('/blog/'+new_blog_name+'/')
         else:
             self.redirect('/user/')
 
@@ -111,7 +114,7 @@ class UserHome(webapp2.RequestHandler):
 
 class BlogHome(webapp2.RequestHandler):
 
-    def post(self, blog_name):
+    def post(self, blog_name, page_number):
         if self.request.get('blogpost_title') and self.request.get('blogpost_content'):
             blogpost_title = self.request.get('blogpost_title')
             blogpost_content = self.request.get('blogpost_content')
@@ -122,11 +125,18 @@ class BlogHome(webapp2.RequestHandler):
             blogpost = Blogpost(author=users.get_current_user(), title=blogpost_title, content=blogpost_content, blog=blog_name, tags=tag_tokens)
             blogpost.put()
 
-            self.redirect('/blog/' + blog_name)
+            self.redirect('/blog/' + blog_name + '/')
         else:
-            self.redirect('/blog/' + blog_name)
+            #self.redirect('/blog/' + blog_name + str(ViewingPage))
+            self.redirect('/blog/' + blog_name + '/')
 
-    def get(self, blog_name):
+
+    def get(self, blog_name, page_number):
+
+        if page_number:
+            ViewingPage = int(page_number[0])
+        else:
+            ViewingPage = 0
 
         user = users.get_current_user()
         owner = False
@@ -152,9 +162,17 @@ class BlogHome(webapp2.RequestHandler):
         blogpost_query = db.GqlQuery("SELECT * FROM Blogpost " +
                 "WHERE blog = :1 " +
                 "ORDER BY date DESC", blog_name)
-        blogposts = blogpost_query.run(limit=10)
 
-        
+        if page_number: 
+            blogposts = blogpost_query.run(offset=ViewingPage*10,limit=10)
+        else:
+            blogposts = blogpost_query.run(limit=10)
+
+        if blogpost_query.count() > 10:
+            moreposts = True
+        else:
+            moreposts = False
+
 
         blogpost_content = {}
         for post in blogpost_query.run(limit=10):
@@ -184,7 +202,9 @@ class BlogHome(webapp2.RequestHandler):
             'one_blog': one_blog,
             'blogpost_content' : blogpost_content,
             'blog_tags': blog_tags,
-            'owner' : owner
+            'owner' : owner,
+            'moreposts' : moreposts,
+            'page_counter': ViewingPage
         } 
         template = JINJA_ENVIRONMENT.get_template("blog_home_page.html")
         self.response.write(template.render(template_values))
@@ -366,7 +386,7 @@ class TagSearchPage(webapp2.RequestHandler):
 application = webapp2.WSGIApplication([
     ('/', HomePage),
     (r'/user/', UserHome),
-    (r'/blog/(.*)', BlogHome),
+    (r'/blog/(.*)/(.*)', BlogHome),
     (r'/post/(.*)/(.*)/(.*)', BlogpostPage),
     (r'/search/(.*)/(.*)', TagSearchPage)
 ], debug=True)
