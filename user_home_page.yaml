@@ -1,0 +1,12 @@
+indexes:
+- kind: Blogpost
+  ancestor: yes
+  properties:
+  - name: date
+    direction: desc
+    
+- kind: Blog
+  properties:
+  - name: author
+  - name: title
+    direction: desc

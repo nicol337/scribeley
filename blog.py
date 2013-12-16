@@ -214,7 +214,6 @@ class BlogpostPage(webapp2.RequestHandler):
 
         user = users.get_current_user()
         owner = False
-        
 
         if users.get_current_user():
             log_in_out_url = users.create_logout_url(self.request.uri)
@@ -249,7 +248,6 @@ class BlogpostPage(webapp2.RequestHandler):
                 "WHERE author = :1 " +
                 "ORDER BY title", user)
         blogs = blog_query.run(limit=1000)   
-
 
         template_values = { 
             'user' : user,
