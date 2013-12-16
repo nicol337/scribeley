@@ -40,7 +40,7 @@
           <div class="nav-collapse collapse">
             <ul class="nav">
               {% if user %}
-              <li><a href="/userhome/{{user}}">Home</a></li>
+              <li><a href="/user/">Home</a></li>
               <li><p class="navbar-text pull-right">Logged in as {{ user }}</p></li>
               <li><a href="{{ url|safe }}">{{ url_linktext }}</a></li>
               {% else %}
@@ -60,7 +60,7 @@
           <li class="nav-header">Your Blogs</li>
           {% for blog in blogs %}
           <div>
-          <li><a href="bloghome/{{blog.title}}">{{blog.title}}</a></li>
+          <li><a href="/blog/{{blog.title}}">{{blog.title}}</a></li>
           </div>
           {% endfor %}
         </ul>
@@ -68,10 +68,10 @@
     </div><!--/span-->
     <div class="span9">
       <div class="hero-unit">
-        <h1>Welcome Back, {{user_str}}!</h1>
+        <h1>Welcome, {{user}}!</h1>
       </div>
       <p>create a new blog titled...</p>
-      <form action="/userhome/{{user}}" method="post">
+      <form action="/user/" method="post">
           <div><textarea id="blog_title" name="blog_title" rows="3" cols="60"></textarea></div>
           <div><input type="submit" value="gimme the blog"></div>
       </form>
