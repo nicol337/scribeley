@@ -45,6 +45,11 @@ class Blogpost(db.Model):
     blog = db.StringProperty(required=True)
     date = db.DateTimeProperty(auto_now_add=True)
 
+    def update(self,new_title,new_content):
+        self.title = new_title
+        self.content = new_content
+        self.put()
+
 class HomePage(webapp2.RequestHandler):
 
     def get(self):
@@ -164,9 +169,101 @@ class BlogHome(webapp2.RequestHandler):
         template = JINJA_ENVIRONMENT.get_template("blog_home_page.html")
         self.response.write(template.render(template_values))
 
+class BlogpostPage(webapp2.RequestHandler):
+    def post(self, blog_name, blogpost_name, mode):
+
+        user = users.get_current_user()
+        owner = False
+
+        one_blog_query = db.GqlQuery("SELECT * FROM Blog " +
+                "WHERE title = :1", blog_name)
+
+        one_blog = one_blog_query.run(limit=1)
+        
+        for blog in one_blog:
+            if user == blog.author:
+                owner = True
+            else:
+                owner = False
+
+        if mode == "edit" and owner == True:
+            edit = True
+        else:
+            edit = False
+
+        blogpost_query = db.GqlQuery("SELECT * FROM Blogpost " +
+                "WHERE blog = :1 AND title = :2 " +
+                "ORDER BY date DESC", blog_name, blogpost_name)
+
+        blogpost = blogpost_query.run(limit=1)
+        new_title = self.request.get('blogpost_title')
+        new_content = self.request.get('blogpost_content')
+
+        if edit and owner:
+            for post in blogpost:
+                post.update(new_title, new_content)
+
+        self.redirect('/post/'+ blog_name+'/'+new_title+"/view")
+
+    def get(self, blog_name, blogpost_name, mode):
+
+        user = users.get_current_user()
+        owner = False
+        
+
+        if users.get_current_user():
+            log_in_out_url = users.create_logout_url(self.request.uri)
+            url_linktext = 'Logout'
+        else:
+            template_url = 'home_page.html'
+            log_in_out_url = users.create_login_url(self.request.uri)
+            url_linktext = 'Login'
+
+        one_blog_query = db.GqlQuery("SELECT * FROM Blog " +
+                "WHERE title = :1", blog_name)
+
+        one_blog = one_blog_query.run(limit=1)
+        
+        for blog in one_blog:
+            if user == blog.author:
+                owner = True
+            else:
+                owner = False
+
+        if mode == "edit" and owner == True:
+            edit = True
+        else:
+            edit = False
+
+        blogpost_query = db.GqlQuery("SELECT * FROM Blogpost " +
+                "WHERE blog = :1 AND title = :2 " +
+                "ORDER BY date DESC", blog_name, blogpost_name)
+        blogpost = blogpost_query.run(limit=1)
+
+        blog_query = db.GqlQuery("SELECT * FROM Blog " +
+                "WHERE author = :1 " +
+                "ORDER BY title", user)
+        blogs = blog_query.run(limit=1000)   
+
+
+        template_values = { 
+            'user' : user,
+            'url': log_in_out_url,
+            'url_linktext': url_linktext,
+            'blogs' : blogs,
+            'blogpost' : blogpost,
+            'blog_name': blog_name,
+            'one_blog': one_blog,
+            'owner' : owner,
+            'edit' : edit
+        } 
+
+        template = JINJA_ENVIRONMENT.get_template("blog_post_page.html")
+        self.response.write(template.render(template_values))
+
 application = webapp2.WSGIApplication([
     ('/', HomePage),
     (r'/user/', UserHome),
-    (r'/blog/(.*)', BlogHome)
-    # ('/sign', Blog),
+    (r'/blog/(.*)', BlogHome),
+    (r'/post/(.*)/(.*)/(.*)', BlogpostPage),
 ], debug=True)

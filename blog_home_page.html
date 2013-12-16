@@ -74,6 +74,7 @@
         {% endfor %}
       </div>
       {% if owner %}
+      <h2>New Post</h2>
       <form action="/blog/{{blog_name}}" method="post">
           Title<div><textarea id="blogpost_title" name="blogpost_title" rows="1" cols="60"></textarea>
           </div>
@@ -81,11 +82,13 @@
           <div><input type="submit" value="post dat post"></div>
       </form>
       {% endif %}
+      <h2>Previous Posts</h2>
       {% for blogpost in blogposts %}
       <div class="span4">
         <h3>{{blogpost.title}}</h3>
         <h4>{{blogpost.content}}</h4>
         <h6>{{blogpost.date}}</h6>
+        <button type="button" class="btn btn-default"><a href="/post/{{blog_name}}/{{blogpost.title}}/view">view more</a></button>
       </div>
       {% endfor %}
     </div>
