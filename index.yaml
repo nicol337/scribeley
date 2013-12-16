@@ -10,5 +10,3 @@ indexes:
   - name: author
   - name: title
     direction: desc
-
-
