@@ -17,6 +17,13 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 
 ViewingPage = 0
 
+def to_link(str):
+    new_link='<a href="'+str+'">'+str+'</a>'
+
+    if str.endswith(".jpg") or str.endswith(".png") or str.endswith(".gif"):
+        new_link = str
+    return jinja2.Markup(new_link)
+
 class Blog(db.Model):
     author = db.UserProperty(required=True)
     title = db.StringProperty(required=True)
@@ -113,7 +120,7 @@ class BlogHome(webapp2.RequestHandler):
 
     def get(self, blog_name, page_number):
 
-        if page_number:
+        if page_number and isinstance(page_number, int):
             ViewingPage = int(page_number[0])
         else:
             ViewingPage = 0
@@ -162,6 +169,12 @@ class BlogHome(webapp2.RequestHandler):
             blogpost_content[post.title]=post.content
             if len(post.content) > 500:
                 blogpost_content[post.title]=post.content[:500]
+
+        for key in blogpost_content.keys():
+            text_tokens = blogpost_content[key].split(' ')
+            for tok in text_tokens:
+                if tok.startswith("http://") or tok.startswith("https://"):
+                    blogpost_content[key]=blogpost_content[key].replace(tok,to_link(tok))
 
         blog_tags=[]
         for post in blogpost_query.run():
@@ -273,7 +286,17 @@ class BlogpostPage(webapp2.RequestHandler):
                 if tag not in blog_tags:
                     blog_tags.append(tag)
 
-        blogpost = blogpost_query.run(limit=1)
+        # blogpost = blogpost_query.run(limit=1)
+
+        for post in blogpost_query.run(limit=1):
+            post.content.split(' ')
+            text_tokens = post.content.split(' ')
+            for tok in text_tokens:
+                if tok.startswith("http://") or tok.startswith("https://"):
+                    
+                    post.content=post.content.replace(tok,to_link(tok))
+                    # post.content="helloworld"
+            blogpost = post
 
         blog_query = db.GqlQuery("SELECT * FROM Blog " +
                 "WHERE author = :1 " +
@@ -300,7 +323,7 @@ class TagSearchPage(webapp2.RequestHandler):
 
     def get(self, blog_name, tag_name, page_number):
 
-        if page_number:
+        if page_number and isinstance(page_number, int):
             ViewingPage = int(page_number[0])
         else:
             ViewingPage = 0
@@ -345,14 +368,18 @@ class TagSearchPage(webapp2.RequestHandler):
 
         blogposts = blogpost_query.run(offset=ViewingPage*10,limit=10)
 
-        # blogposts = blogpost_query.run(limit=10)
-
         blogpost_content = {}
 
         for post in blogpost_query.run(offset=ViewingPage*10,limit=10):
             blogpost_content[post.title]=post.content
             if len(post.content) > 500:
                 blogpost_content[post.title]=post.content[:500]
+
+        for key in blogpost_content.keys():
+            text_tokens = blogpost_content[key].split(' ')
+            for tok in text_tokens:
+                if tok.startswith("http://") or tok.startswith("https://"):
+                    blogpost_content[key]=blogpost_content[key].replace(tok,to_link(tok))
 
         blog_tags_query = db.GqlQuery("SELECT * FROM Blogpost " +
                 "WHERE blog = :1 " +

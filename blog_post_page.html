@@ -74,36 +74,36 @@
         </div><!--/span-->
         <div class="span9">
           <div class="hero-unit">
-            {% for post in blogpost %}
-            <h2>{{ post.title }}</h2>
+            <!-- for post in blogpost-->
+            <h2>{{ blogpost.title }}</h2>
             <h3>from {{ blog_name }}</h3>
             <hr>
-            <p>{{ post.content }}</p>
+            <p>{{ blogpost.content|safe }}</p>
             <hr>
-            <p>{{ post.date }} </p>
-            <p>Tags: {% for tag in post.tags %}
+            <p>{{ blogpost.date }} </p>
+            <p>Tags: {% for tag in blogpost.tags %}
                 {{tag}}
-               {% endfor %}
+                    {% endfor %}
             </p>
             {% if owner %}
               {% if edit %}
                 <hr>
-                <form action="/post/{{blog_name}}/{{post.title}}/edit" method="post">
-                  <div><textarea id="blogpost_title" name="blogpost_title" rows="1" cols="60">{{post.title}}</textarea>
+                <form action="/post/{{blog_name}}/{{blogpost.title}}/edit" method="post">
+                  <div><textarea id="blogpost_title" name="blogpost_title" rows="1" cols="60">{{blogpost.title}}</textarea>
                   </div>
-                  <div><textarea id="blogpost_content" name="blogpost_content" rows="5" cols="60">{{post.content}}</textarea>
+                  <div><textarea id="blogpost_content" name="blogpost_content" rows="5" cols="60">{{blogpost.content}}</textarea>
                   </div>
-                  <div><textarea id="blogpost_tags" name="blogpost_tags" rows="1" cols="60">{% for tag in post.tags %}{{ tag }},{% endfor %}</textarea>
+                  <div><textarea id="blogpost_tags" name="blogpost_tags" rows="1" cols="60">{% for tag in blogpost.tags %}{{ tag }},{% endfor %}</textarea>
                   </div>
                   <input type="submit" value="submit changes"></div>
                 </form>
               {% else %}
-                <form action="/post/{{blog_name}}/{{post.title}}/edit" method="get">
+                <form action="/post/{{blog_name}}/{{blogpost.title}}/edit" method="get">
                   <input type="submit" value="edit"></div>
                 </form>
             {% endif %}
             {% endif %}
-            {% endfor %}
+            <!--  endfor -->
           </div>
         </div>
     </div><!--/.fluid-container-->
