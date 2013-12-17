@@ -1,0 +1,105 @@
+
+<!DOCTYPE html>
+{% autoescape true %}
+<html>
+  <head>
+  <!-- <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" /> -->
+  <link type="text/css" rel="stylesheet" href="/bootstrap/css/bootstrap.css" />
+  <link href="css/bootstrap.css" rel="stylesheet">
+    <style type="text/css">
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+      .sidebar-nav {
+        padding: 9px 0;
+      }
+
+      @media (max-width: 980px) {
+        .navbar-text.pull-right {
+          float: none;
+          padding-left: 5px;
+          padding-right: 5px;
+        }
+      }
+    </style>
+
+  </head>
+   <body>
+
+     <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container-fluid">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="http://scribeley.appspot.com">Scribeley</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              {% if user %}
+              <li><a href="/user/">Home</a></li>
+              <li><p class="navbar-text pull-right">Logged in as {{ user }}</p></li>
+              <li><a href="{{ url|safe }}">{{ url_linktext }}</a></li>
+              {% else %}
+              <li><p class="navbar-text pull-right"><a href="{{ url|safe }}">Login</a></p></li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div> <!-- end of nav -->
+
+<div class="container-fluid">
+  <div class="row-fluid">
+    <div class="span3">
+      <div class="well sidebar-nav">
+        <ul class="nav nav-list">
+          <li class="nav-header">Your Blogs</li>
+          {% for blog in blogs %}
+          <div>
+          <li><a href="/blog/{{blog.title}}/">{{ blog.title }}</a></li>
+          </div>
+          {% endfor %}
+          <li class="nav-header">Tags of {{blog_name}}</li>
+          {% for tag in blog_tags %}
+          <div>
+          <li><a href="/search/{{blog_name}}/{{tag}}/">{{tag}}</a></li>
+          </div>
+          {% endfor %}
+        </ul>
+      </div><!--/.well -->
+    </div><!--/span-->
+    <div class="span9">
+      <div class="hero-unit">
+        <h1>{{ blog_name }}</h1>
+        {% for blog in one_blog %}
+        <h1>{{ blog.title }}</h1>
+        {% endfor %}
+      </div>
+      <h2>Posts tagged with {{ tag_name }}</h2>
+      {% for blogpost in blogposts %}
+      <div class="span8">
+        <h3>{{blogpost.title}}</h3>
+        <h4>{{blogpost_content[blogpost.title]}}</h4>
+        <h6>{{blogpost.date}}</h6>
+        <h6>tags   |
+        {% for tag in blogpost.tags %}
+           <a href="/search/{{blog_name}}/{{tag}}/">{{tag}} </a>  
+        {% endfor %}
+        </h6>
+        <button type="button" class="btn btn-default"><a href="/post/{{blog_name}}/{{blogpost.title}}/view">view more</a></button>
+      </div>
+      {% endfor %}
+      {% if moreposts %}
+        <div class="span8">
+        <button type="button" class="btn btn-inverse pull-right"><a href="/search/{{blog_name}}/{{tag_name}}/{{ page_counter|int + 1 }}">older posts</a></button>
+        </div>
+      {% endif %}
+    </div>
+</div><!--/.fluid-container-->
+
+</body>
+</html>
+{% endautoescape %}

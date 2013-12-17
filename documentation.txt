@@ -1,0 +1,81 @@
+Scribeley: A student made blogging site
+Nicole Lee (nkL223@gmail.com, N14636427)
+
+Overview: Scribeley allows users to have multiple blogs and multiple posts within blogs. They can create, edit, and publish to their own blogs and view others' blogs. 
+
+Assumptions: titles of blogs and posts can be repeated. Tags are literal so spaces will create different tags.
+
+-Navigation:
+	Begin on the Scribeley home landing page and log in as a user. Once logged in, you are brougt to your personal home page which lists "Your Blogs" on the left navigation. An option in the center allows you to to create a new blog. Eventually it will populate on the left navigation under "Your Blogs". Clicking on one of your blogs brings you to that blog's home page.
+
+	A blog's home page displays the first 10 posts (ordered by date) with an older posts button at the bottom to get to older posts. If the logged in user is the owner of this blog then there is a New Post form displayed that will only submit if the title and contents are non-empty. Tags are option. A blog's home page has the added navigation group of "Tags of <current blog>". This displays all the tags in the blogposts of the current blog you are viewing. 
+
+	Clicking on one of these tag hyperlinks will lead you to a search page where all posts tagged with the tag from the current blog are displayed in groups of ten with an older posts button (if there are older posts to display).
+
+	Where ever groups of posts are shown, there is a view more button which will bring you to a post page displaying only that post. If the logged in blog's author, then the user has the option to edit the content, title, and tags of the post. If the edit button is clicked, a form is displayed.
+
+-Login/Logout
+	Login and logout options on the top of the page which toggle depending on if you are logged in or out. Pages of blogs, searches, and blogposts are still viewable even if you are not the owner of the blog. In the case you are not the owner, certain forms (edit, create) are not offered.
+
+-Creating
+	As a user, you can create a new blog from the user home page or you can create a new blogpost from the blog home page.
+
+-Editing
+	As the owner of the blog you are currently viewing, you can edit the blogposts by going through the view more -> edit options and submitted the changes
+-Viewing
+	
+
+Application Architecture:
+-db.Model classes:
+	-Blog
+
+	-Blogpost
+-webapp2.RequestHandler classes:
+	-HomePage
+	- ('/', HomePage),
+    -(r'/user/', UserHome),
+    -(r'/blog/(.*)/(.*)', BlogHome),
+    -(r'/post/(.*)/(.*)/(.*)', BlogpostPage),
+    -(r'/search/(.*)/(.*)/(.*)', TagSearchPage)
+
+
+
+Third Party Packages:
+-Jinja2
+	Used for creating the following templates:
+	-blog_post_page.html
+	-tag_search_page.html
+	-blog_home_page.html
+	-user_home_page.html
+	-home_page.html
+-Twitter Bootstrap
+	A css and responsive javascripting website that does superficial mark-up. The css stylesheet (bootstrap.css) is linked in in the head of an html document. The stylesheets are located in the bootstrap/css folder. I use it to style the following Jinja2 templates:
+	-blog_post_page.html
+	-tag_search_page.html
+	-blog_home_page.html
+	-user_home_page.html
+	-home_page.html
+
+
+-Requirements
+1.
+
+2.
+
+3.
+
+4.
+
+5.
+
+6.
+
+7.
+
+8. 
+
+9. Unimplemented
+ 
+10. Unimplemented
+
+Branch. 
