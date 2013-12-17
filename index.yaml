@@ -1,10 +1,30 @@
 indexes:
 - kind: Blogpost
   properties:
+  - name: title
+    direction: desc
+
+- kind: Blogpost
+  properties:
   - name: date
     direction: desc
+
+- kind: Blogpost
+  properties:
+  - name: blog
+    direction: desc
+
+- kind: Blogpost
+  properties:
+  - name: tags
+    direction: desc
+
 - kind: Blog
   properties:
   - name: author
+  	direction: desc
+
+- kind: Blog
+  properties:
   - name: title
     direction: desc
