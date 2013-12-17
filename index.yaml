@@ -7,8 +7,3 @@ indexes:
   - name: blog
   - name: date
     direction: desc
-
-- kind: Cat
-  properties:
-  - name: mittens
-    direction: desc
