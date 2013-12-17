@@ -1,39 +1,24 @@
 indexes:
+
 - kind: Blogpost
+  ancestor: no
   properties:
   - name: blog
-  	direction: desc
   - name: tags
-    direction: desc
   - name: date
     direction: desc
 
 - kind: Blogpost
+  ancestor: no
   properties:
   - name: blog
-  	direction: desc
   - name: title
-    direction: desc
-  - name: date
-    direction: desc
-
-- kind: Blogpost
-  properties:
-  - name: blog
-  	direction: desc
   - name: date
     direction: desc
 
 - kind: Blog
+  ancestor: no
   properties:
   - name: title
-  	direction: desc
-  - name: author
-    direction: desc
-
-- kind: Blog
-  properties:
-  - name: title
-  	direction: desc
   - name: author
     direction: desc
