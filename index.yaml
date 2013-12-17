@@ -21,10 +21,6 @@ indexes:
 
 - kind: Blog
   properties:
-  - name: author
-  	direction: desc
-
-- kind: Blog
-  properties:
   - name: title
+  - name: author
     direction: desc
