@@ -119,10 +119,10 @@ Third Party Packages:
 
 7. Clicking on a tag listed in the bottom of a blogpost or by clicking on a tag from the left navigation bar will lead to a search of the blog for all posts tagged with that string.
 
-8. 
+8. http:// and https:// links are displayed as links on the blog_home, blog_post, and tag_search pages.
 
 9. Unimplemented
  
 10. Unimplemented
 
-Branch. 
+Branch. turned off the embedded hyperlinks (feature 8). See no_eight branch.

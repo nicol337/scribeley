@@ -19,7 +19,6 @@ ViewingPage = 0
 
 def to_link(str):
     new_link='<a href="'+str+'">'+str+'</a>'
-
     if str.endswith(".jpg") or str.endswith(".png") or str.endswith(".gif"):
         new_link = str
     return jinja2.Markup(new_link)
@@ -286,16 +285,12 @@ class BlogpostPage(webapp2.RequestHandler):
                 if tag not in blog_tags:
                     blog_tags.append(tag)
 
-        # blogpost = blogpost_query.run(limit=1)
-
         for post in blogpost_query.run(limit=1):
             post.content.split(' ')
             text_tokens = post.content.split(' ')
             for tok in text_tokens:
                 if tok.startswith("http://") or tok.startswith("https://"):
-                    
                     post.content=post.content.replace(tok,to_link(tok))
-                    # post.content="helloworld"
             blogpost = post
 
         blog_query = db.GqlQuery("SELECT * FROM Blog " +
@@ -389,7 +384,6 @@ class TagSearchPage(webapp2.RequestHandler):
             for tag in post.tags:
                 if tag not in blog_tags:
                     blog_tags.append(tag)
-
 
         blog_query = db.GqlQuery("SELECT * FROM Blog " +
                 "WHERE author = :1 " +
