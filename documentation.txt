@@ -78,13 +78,15 @@ Request Handler Classes Architecture:
 	-BlogHome (r'/blog/(.*)/(.*)', BlogHome)
 		-uses blog_home_page.html
 		-post: post request submitted by the create a new post form on this page. redirects to the same page with the updated lists of posts (new post is displayed as the first post under "Previous Posts")
-		-get: blog's home page with previous posts displayed
+		-get: blog's home page
 
-	-BlogpostPage
-
-    -(r'/post/(.*)/(.*)/(.*)', BlogpostPage),
-    -(r'/search/(.*)/(.*)/(.*)', TagSearchPage)
-
+	-BlogpostPage (r'/post/(.*)/(.*)/(.*)', BlogpostPage)
+		-uses blog_post_page.html
+		-post: post request submitted by the edit post form on this page.
+		-get: loads the post's attributes on a page by itself
+    - TagSearchPage (r'/search/(.*)/(.*)/(.*)', TagSearchPage)
+    	-uses tag_search_page.html
+    	-get: loads all posts in the blog that are tagged with the specified string.
 
 Third Party Packages:
 -Jinja2
