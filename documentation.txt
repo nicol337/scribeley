@@ -22,8 +22,9 @@ Assumptions: titles of blogs and posts can be repeated. Tags are literal so spac
 
 -Editing
 	As the owner of the blog you are currently viewing, you can edit the blogposts by going through the view more -> edit options and submitted the changes
+
 -Viewing
-	
+	You can view all blogs, blogposts, and tag search pages for a blog if you are the owner or not. The user home pages are only shown to the current user.
 
 Application Architecture:
 -db.Model classes:
@@ -37,7 +38,6 @@ Application Architecture:
     -(r'/blog/(.*)/(.*)', BlogHome),
     -(r'/post/(.*)/(.*)/(.*)', BlogpostPage),
     -(r'/search/(.*)/(.*)/(.*)', TagSearchPage)
-
 
 
 Third Party Packages:
@@ -56,13 +56,12 @@ Third Party Packages:
 	-user_home_page.html
 	-home_page.html
 
-
 -Requirements
-1.
+1. Can handle multiple users that log in and each user has the ability to add new blogs to their own group of blogs (see /blog/<blogname>/ )
 
-2.
+2. Each blog can only be added to/edited by the owner of the blog. Users can choose a blog from the "Your Blogs" navigation bar on the left and go to the blog's home page. Edit a blog post by clicking view more on that post then clicking edit.
 
-3.
+3. 
 
 4.
 

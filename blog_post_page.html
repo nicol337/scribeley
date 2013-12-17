@@ -1,0 +1,113 @@
+
+<!DOCTYPE html>
+{% autoescape true %}
+<html>
+  <head>
+  <!-- <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" /> -->
+  <link type="text/css" rel="stylesheet" href="/bootstrap/css/bootstrap.css" />
+  <link href="css/bootstrap.css" rel="stylesheet">
+    <style type="text/css">
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+      .sidebar-nav {
+        padding: 9px 0;
+      }
+
+      @media (max-width: 980px) {
+        /* Enable use of floated navbar text */
+        .navbar-text.pull-right {
+          float: none;
+          padding-left: 5px;
+          padding-right: 5px;
+        }
+      }
+    </style>
+
+  </head>
+   <body>
+
+     <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container-fluid">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="http://scribeley.appspot.com">Scribeley</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              {% if user %}
+              <li><a href="/user/">Home</a></li>
+              <li><p class="navbar-text pull-right">Logged in as {{ user }}</p></li>
+              <li><a href="{{ url|safe }}">{{ url_linktext }}</a></li>
+              {% else %}
+              <li><p class="navbar-text pull-right"><a href="{{ url|safe }}">Login</a></p></li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div> <!-- end of nav -->
+
+    <div class="container-fluid">
+      <div class="row-fluid">
+        <div class="span3">
+          <div class="well sidebar-nav">
+            <ul class="nav nav-list">
+              <li class="nav-header">Your Blogs</li>
+              {% for blog in blogs %}
+              <div>
+              <li><a href="/blog/{{blog.title}}/">{{ blog.title }}</a></li>
+              </div>
+              {% endfor %}
+              <li class="nav-header">Tags of {{blog_name}}</li>
+              {% for tag in blog_tags %}
+              <div>
+              <li><a href="/search/{{blog_name}}/{{tag}}/">{{tag}}</a></li>
+              </div>
+              {% endfor %}
+            </ul>
+          </div><!--/.well -->
+        </div><!--/span-->
+        <div class="span9">
+          <div class="hero-unit">
+            {% for post in blogpost %}
+            <h2>{{ post.title }}</h2>
+            <h3>from {{ blog_name }}</h3>
+            <hr>
+            <p>{{ post.content }}</p>
+            <hr>
+            <p>{{ post.date }} </p>
+            <p>Tags: {% for tag in post.tags %}
+                {{tag}}
+               {% endfor %}
+            </p>
+            {% if owner %}
+              {% if edit %}
+                <hr>
+                <form action="/post/{{blog_name}}/{{post.title}}/edit" method="post">
+                  <div><textarea id="blogpost_title" name="blogpost_title" rows="1" cols="60">{{post.title}}</textarea>
+                  </div>
+                  <div><textarea id="blogpost_content" name="blogpost_content" rows="5" cols="60">{{post.content}}</textarea>
+                  </div>
+                  <div><textarea id="blogpost_tags" name="blogpost_tags" rows="1" cols="60">{% for tag in post.tags %}{{ tag }},{% endfor %}</textarea>
+                  </div>
+                  <input type="submit" value="submit changes"></div>
+                </form>
+              {% else %}
+                <form action="/post/{{blog_name}}/{{post.title}}/edit" method="get">
+                  <input type="submit" value="edit"></div>
+                </form>
+            {% endif %}
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+    </div><!--/.fluid-container-->
+
+</body>
+</html>
+{% endautoescape %}
