@@ -65,8 +65,9 @@ class HomePage(webapp2.RequestHandler):
 class UserHome(webapp2.RequestHandler):
 
     def post(self):
-        if self.request.get('blog_title'):
-            new_blog_name = self.request.get('blog_title')
+        blogTitle = self.request.get('blog_title')
+        if blogTitle:
+            new_blog_name = blogTitle
             new_blog = Blog(author=users.get_current_user(),title=new_blog_name)
             new_blog.put()
             self.redirect('/blog/'+new_blog_name+'/')
@@ -76,7 +77,7 @@ class UserHome(webapp2.RequestHandler):
     def get(self):
         user = users.get_current_user()
 
-        if users.get_current_user():
+        if user:
             template_url= 'user_home_page.html'
             url = users.create_logout_url(self.request.uri)
             url_linktext = 'Logout'
