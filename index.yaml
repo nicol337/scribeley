@@ -15,6 +15,18 @@ indexes:
   - name: author
   - name: title
 
+- kind: Blog
+  properties:
+  - name: authorID
+  - name: title
+
+- kind: Blogpost
+  properties:
+  - name: authorID
+  - name: blog
+  - name: date
+    direction: desc
+
 - kind: Blogpost
   properties:
   - name: blog

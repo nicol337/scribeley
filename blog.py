@@ -3,6 +3,8 @@ import cgi
 import urllib
 import re
 
+
+
 from google.appengine.api import users
 from google.appengine.ext import ndb
 from google.appengine.ext import db
@@ -17,6 +19,16 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 
 ViewingPage = 0
 
+def getBlogs(authorID, blog_name = None):
+    if blog_name:
+        return db.GqlQuery("SELECT * FROM Blog " +
+            "WHERE title = :1 AND authorID = :2" , blog_name, authorID)
+    else:
+        return db.GqlQuery("SELECT * FROM Blog " +
+            "WHERE authorID = :1" , authorID)
+
+
+
 def to_link(str):
     new_link='<a href="'+str+'">'+str+'</a>'
     if str.endswith(".jpg") or str.endswith(".png") or str.endswith(".gif"):
@@ -24,11 +36,11 @@ def to_link(str):
     return jinja2.Markup(new_link)
 
 class Blog(db.Model):
-    author = db.UserProperty(required=True)
+    authorID = db.StringProperty(required=True)
     title = db.StringProperty(required=True)
 
 class Blogpost(db.Model):
-    author = db.UserProperty(required=True)
+    authorID = db.StringProperty(required=True)
     title = db.StringProperty(required=True)
     content = db.TextProperty()
     tags = db.StringListProperty()
@@ -46,7 +58,7 @@ class HomePage(webapp2.RequestHandler):
     def get(self):
         user = users.get_current_user()
 
-        if users.get_current_user():
+        if user:
             url = users.create_logout_url(self.request.uri)
             url_linktext = 'Logout'
         else:
@@ -66,32 +78,38 @@ class UserHome(webapp2.RequestHandler):
 
     def post(self):
         blogTitle = self.request.get('blog_title')
+        user = users.get_current_user()
         if blogTitle:
             new_blog_name = blogTitle
-            new_blog = Blog(author=users.get_current_user(),title=new_blog_name)
+            new_authorID = user.user_id()
+            new_blog = Blog(authorID=new_authorID,title=new_blog_name)
             new_blog.put()
-            self.redirect('/blog/'+new_blog_name+'/')
+            self.redirect('/blog/'+new_authorID+'/'+new_blog_name+'/')
         else:
             self.redirect('/user/')
 
     def get(self):
         user = users.get_current_user()
+        
 
         if user:
+            userID = user.user_id()
             template_url= 'user_home_page.html'
             url = users.create_logout_url(self.request.uri)
             url_linktext = 'Logout'
         else:
+            userID = ""
             template_url = 'home_page.html'
             url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
 
         blog_query= db.GqlQuery("SELECT * FROM Blog " +
-                "WHERE author = :1", user)
+                "WHERE authorID = :1", userID)
         blogs = blog_query.run(limit=1000)
 
         template_values = { 
             'user' : user,
+            'userID' : userID,
             'url': url,
             'url_linktext': url_linktext,
             'blogs' : blogs
@@ -102,23 +120,23 @@ class UserHome(webapp2.RequestHandler):
 
 class BlogHome(webapp2.RequestHandler):
 
-    def post(self, blog_name, page_number):
+    def post(self, authorID, blog_name, page_number):
         if self.request.get('blogpost_title') and self.request.get('blogpost_content'):
             blogpost_title = self.request.get('blogpost_title')
             blogpost_content = self.request.get('blogpost_content')
             
             blogpost_tags = self.request.get('blogpost_tags')
-            tag_tokens = blogpost_tags.split(',')
+            tag_tokens = [tag.strip() for tag in blogpost_tags.split(',')]
 
-            blogpost = Blogpost(author=users.get_current_user(), title=blogpost_title, content=blogpost_content, blog=blog_name, tags=tag_tokens)
+            blogpost = Blogpost(authorID=users.get_current_user().user_id(), title=blogpost_title, content=blogpost_content, blog=blog_name, tags=tag_tokens)
             blogpost.put()
 
-            self.redirect('/blog/' + blog_name + '/')
+            self.redirect('/blog/' + authorID + '/' + blog_name + '/')
         else:
-            self.redirect('/blog/' + blog_name + '/')
+            self.redirect('/blog/' + authorID + '/' + blog_name + '/')
 
 
-    def get(self, blog_name, page_number):
+    def get(self, authorID, blog_name, page_number):
 
         if page_number and isinstance(page_number, int):
             ViewingPage = int(page_number[0])
@@ -127,7 +145,7 @@ class BlogHome(webapp2.RequestHandler):
 
         user = users.get_current_user()
         owner = False
-        if users.get_current_user():
+        if user:
             log_in_out_url = users.create_logout_url(self.request.uri)
             url_linktext = 'Logout'
         else:
@@ -136,19 +154,19 @@ class BlogHome(webapp2.RequestHandler):
             url_linktext = 'Login'
 
         one_blog_query = db.GqlQuery("SELECT * FROM Blog " +
-                "WHERE title = :1", blog_name)
+                "WHERE title = :1 AND authorID = :2" , blog_name, authorID)
 
         one_blog = one_blog_query.run(limit=1)
         
         for blog in one_blog:
-            if user == blog.author:
+            if user.user_id() == blog.authorID:
                 owner = True
             else:
                 owner = False
 
         blogpost_query = db.GqlQuery("SELECT * FROM Blogpost " +
-                "WHERE blog = :1 " +
-                "ORDER BY date DESC", blog_name)
+                "WHERE blog = :1 AND authorID = :2 " +
+                "ORDER BY date DESC", blog_name, authorID)
 
         blogposts = blogpost_query.run(offset=(ViewingPage+1)*10)
 
@@ -181,20 +199,23 @@ class BlogHome(webapp2.RequestHandler):
             for tag in post.tags:
                 if tag not in blog_tags:
                     blog_tags.append(tag)
+        blog_tags.sort()
             
 
         blog_query = db.GqlQuery("SELECT * FROM Blog " +
-                "WHERE author = :1 " +
-                "ORDER BY title", user)
+                "WHERE authorID = :1 " +
+                "ORDER BY title", user.user_id())
         blogs = blog_query.run(limit=1000)    
 
         template_values = { 
             'user' : user,
+            'userID': user.user_id(),
             'url': log_in_out_url,
             'url_linktext': url_linktext,
             'blogs' : blogs,
             'blogposts' : blogposts,
             'blog_name': blog_name,
+            'authorID': authorID,
             'one_blog': one_blog,
             'blogpost_content' : blogpost_content,
             'blog_tags': blog_tags,
@@ -206,18 +227,18 @@ class BlogHome(webapp2.RequestHandler):
         self.response.write(template.render(template_values))
 
 class BlogpostPage(webapp2.RequestHandler):
-    def post(self, blog_name, blogpost_name, mode):
+    def post(self, authorID, blog_name, blogpost_name, mode):
 
         user = users.get_current_user()
         owner = False
 
         one_blog_query = db.GqlQuery("SELECT * FROM Blog " +
-                "WHERE title = :1", blog_name)
+                "WHERE title = :1 AND authorID = :2", blog_name, authorID)
 
         one_blog = one_blog_query.run(limit=1)
         
         for blog in one_blog:
-            if user == blog.author:
+            if user.user_id() == blog.authorID:
                 owner = True
             else:
                 owner = False
@@ -228,8 +249,8 @@ class BlogpostPage(webapp2.RequestHandler):
             edit = False
 
         blogpost_query = db.GqlQuery("SELECT * FROM Blogpost " +
-                "WHERE blog = :1 AND title = :2 " +
-                "ORDER BY date DESC", blog_name, blogpost_name)
+                "WHERE blog = :1 AND title = :2 AND authorID = :3" +
+                "ORDER BY date DESC", blog_name, blogpost_name, authorID)
 
         blogpost = blogpost_query.run(limit=1)
         new_title = self.request.get('blogpost_title')
@@ -243,7 +264,7 @@ class BlogpostPage(webapp2.RequestHandler):
 
         self.redirect('/post/'+ blog_name+'/'+new_title+"/view")
 
-    def get(self, blog_name, blogpost_name, mode):
+    def get(self, authorID, blog_name, blogpost_name, mode):
 
         user = users.get_current_user()
         owner = False
@@ -262,7 +283,7 @@ class BlogpostPage(webapp2.RequestHandler):
         one_blog = one_blog_query.run(limit=1)
         
         for blog in one_blog:
-            if user == blog.author:
+            if user.user_id() == blog.authorID:
                 owner = True
             else:
                 owner = False
@@ -306,6 +327,7 @@ class BlogpostPage(webapp2.RequestHandler):
             'blogs' : blogs,
             'blogpost' : blogpost,
             'blog_name': blog_name,
+            'authorID': authorID,
             'one_blog': one_blog,
             'owner' : owner,
             'blog_tags' : blog_tags,
@@ -317,7 +339,7 @@ class BlogpostPage(webapp2.RequestHandler):
 
 class TagSearchPage(webapp2.RequestHandler):
 
-    def get(self, blog_name, tag_name, page_number):
+    def get(self, authorID, blog_name, tag_name, page_number):
 
         if page_number and isinstance(page_number, int):
             ViewingPage = int(page_number[0])
@@ -341,7 +363,7 @@ class TagSearchPage(webapp2.RequestHandler):
         one_blog = one_blog_query.run(limit=1)
         
         for blog in one_blog:
-            if user == blog.author:
+            if user.user_id() == blog.authorID:
                 owner = True
             else:
                 owner = False
@@ -399,6 +421,7 @@ class TagSearchPage(webapp2.RequestHandler):
             'blogposts' : blogposts,
             'blogpost_content': blogpost_content,
             'blog_name': blog_name,
+            'authorID': authorID,
             'one_blog': one_blog,
             'tag_name' : tag_name,
             'blog_tags' : blog_tags,
@@ -413,7 +436,7 @@ class TagSearchPage(webapp2.RequestHandler):
 application = webapp2.WSGIApplication([
     ('/', HomePage),
     (r'/user/', UserHome),
-    (r'/blog/(.*)/(.*)', BlogHome),
-    (r'/post/(.*)/(.*)/(.*)', BlogpostPage),
-    (r'/search/(.*)/(.*)/(.*)', TagSearchPage)
+    (r'/blog/(.*)/(.*)/(.*)', BlogHome),
+    (r'/post/(.*)/(.*)/(.*)/(.*)', BlogpostPage),
+    (r'/search/(.*)/(.*)/(.*)/(.*)', TagSearchPage)
 ], debug=True)
