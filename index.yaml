@@ -12,11 +12,6 @@ indexes:
 
 - kind: Blog
   properties:
-  - name: author
-  - name: title
-
-- kind: Blog
-  properties:
   - name: authorID
   - name: title
 
@@ -29,19 +24,7 @@ indexes:
 
 - kind: Blogpost
   properties:
-  - name: blog
-  - name: date
-    direction: desc
-
-- kind: Blogpost
-  properties:
-  - name: blog
-  - name: tags
-  - name: date
-    direction: desc
-
-- kind: Blogpost
-  properties:
+  - name: authorID
   - name: blog
   - name: title
   - name: date

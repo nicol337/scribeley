@@ -80,10 +80,6 @@
         <h1>{{ blog.title }}</h1>
         {% endfor %}
       </div>
-      <h1>{{ owner }}</h1>
-      <h1>{{ authorID }}</h1>
-      <h1>{{ user.user_id() }}</h1>
-      <h1>{{ uno_blog }}</h1>
       {% if owner %}
       <h2>New Post</h2>
       <form action="/blog/{{authorID}}/{{blog_name}}/" method="post">
