@@ -37,6 +37,7 @@ def to_link(str):
 
 class Blog(db.Model):
     authorID = db.StringProperty(required=True)
+    authorNickname = db.StringProperty(required=True)
     title = db.StringProperty(required=True)
 
 class Blogpost(db.Model):
@@ -52,6 +53,27 @@ class Blogpost(db.Model):
         self.content = new_content
         self.tags = new_tags
         self.put()
+
+class ErrorPage(webapp2.RequestHandler):
+
+    def get(self):
+        user = users.get_current_user()
+
+        if user:
+            url = users.create_logout_url(self.request.uri)
+            url_linktext = 'Logout'
+        else:
+            url = users.create_login_url(self.request.uri)
+            url_linktext = 'Login'
+
+        template_values = { 
+            'user' : user,
+            'url': url,
+            'url_linktext': url_linktext
+        }   
+    
+        template = JINJA_ENVIRONMENT.get_template('404.html')
+        self.response.write(template.render(template_values))
 
 class HomePage(webapp2.RequestHandler):
 
@@ -76,13 +98,16 @@ class HomePage(webapp2.RequestHandler):
 
 class UserHome(webapp2.RequestHandler):
 
+
     def post(self):
+        """Create a new blog for the logged-in user."""
         blogTitle = self.request.get('blog_title')
         user = users.get_current_user()
         if blogTitle:
             new_blog_name = blogTitle
             new_authorID = user.user_id()
-            new_blog = Blog(authorID=new_authorID,title=new_blog_name)
+            new_authorNickname = user.nickname()
+            new_blog = Blog(authorID=new_authorID,authorNickname=new_authorNickname,title=new_blog_name)
             new_blog.put()
             self.redirect('/blog/'+new_authorID+'/'+new_blog_name+'/')
         else:
@@ -91,7 +116,6 @@ class UserHome(webapp2.RequestHandler):
     def get(self):
         user = users.get_current_user()
         
-
         if user:
             userID = user.user_id()
             template_url= 'user_home_page.html'
@@ -144,7 +168,6 @@ class BlogHome(webapp2.RequestHandler):
             ViewingPage = 0
 
         user = users.get_current_user()
-        owner = False
         if user:
             log_in_out_url = users.create_logout_url(self.request.uri)
             url_linktext = 'Logout'
@@ -158,11 +181,12 @@ class BlogHome(webapp2.RequestHandler):
 
         one_blog = one_blog_query.run(limit=1)
         
-        for blog in one_blog:
-            if user.user_id() == blog.authorID:
-                owner = True
-            else:
-                owner = False
+        owner = False
+        authorNickname = "Error"
+        for b in one_blog:
+            uno_blog = "hi"
+            owner = (str(user.user_id()) == str(b.authorID))
+            authorNickname = b.authorNickname
 
         blogpost_query = db.GqlQuery("SELECT * FROM Blogpost " +
                 "WHERE blog = :1 AND authorID = :2 " +
@@ -216,6 +240,7 @@ class BlogHome(webapp2.RequestHandler):
             'blogposts' : blogposts,
             'blog_name': blog_name,
             'authorID': authorID,
+            'authorNickname': authorNickname,
             'one_blog': one_blog,
             'blogpost_content' : blogpost_content,
             'blog_tags': blog_tags,
@@ -438,5 +463,6 @@ application = webapp2.WSGIApplication([
     (r'/user/', UserHome),
     (r'/blog/(.*)/(.*)/(.*)', BlogHome),
     (r'/post/(.*)/(.*)/(.*)/(.*)', BlogpostPage),
-    (r'/search/(.*)/(.*)/(.*)/(.*)', TagSearchPage)
+    (r'/search/(.*)/(.*)/(.*)/(.*)', TagSearchPage),
+    ('/error/', ErrorPage)
 ], debug=True)

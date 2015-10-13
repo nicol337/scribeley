@@ -60,7 +60,7 @@
               <li class="nav-header">Your Blogs</li>
               {% for blog in blogs %}
               <div>
-              <li><a href="/blog/{{blog.title}}/">{{ blog.title }}</a></li>
+              <li><a href="/blog/{{blog.authorID}}/{{blog.title}}/">{{ blog.title }}</a></li>
               </div>
               {% endfor %}
               <li class="nav-header">Tags of {{blog_name}}</li>
@@ -98,7 +98,7 @@
                   <input type="submit" value="submit changes"></div>
                 </form>
               {% else %}
-                <form action="/post/{{blog_name}}/{{blogpost.title}}/edit" method="get">
+                <form action="/post/{{authorID}}/{{blog_name}}/{{blogpost.title}}/edit" method="get">
                   <input type="submit" value="edit"></div>
                 </form>
             {% endif %}

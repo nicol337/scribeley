@@ -60,7 +60,7 @@
           <li class="nav-header">Your Blogs</li>
           {% for blog in blogs %}
           <div>
-          <li><a href="/blog/{{blog.author}}/{{blog.title}}/">{{ blog.title }}</a></li>
+          <li><a href="/blog/{{blog.authorID}}/{{blog.title}}/">{{ blog.title }}</a></li>
           </div>
           {% endfor %}
           <li class="nav-header">Tags of {{blog_name}}</li>
@@ -75,13 +75,18 @@
     <div class="span9">
       <div class="hero-unit">
         <h1>{{ blog_name }}</h1>
+        <h4>by {{ authorNickname }}</h4>
         {% for blog in one_blog %}
         <h1>{{ blog.title }}</h1>
         {% endfor %}
       </div>
+      <h1>{{ owner }}</h1>
+      <h1>{{ authorID }}</h1>
+      <h1>{{ user.user_id() }}</h1>
+      <h1>{{ uno_blog }}</h1>
       {% if owner %}
       <h2>New Post</h2>
-      <form action="/blog/{{user}}/{{blog_name}}/" method="post">
+      <form action="/blog/{{authorID}}/{{blog_name}}/" method="post">
           Title<div><textarea id="blogpost_title" name="blogpost_title" rows="1" cols="60"></textarea>
           </div>
           Content<div><textarea id="blogpost_content" name="blogpost_content" rows="5" cols="60"></textarea></div>
@@ -100,12 +105,12 @@
           <a href="/search/{{blog_name}}/{{tag}}/">{{tag}} </a>  
         {% endfor %}
         </h6>
-        <button type="button" class="btn btn-default"><a href="/post/{{blog_name}}/{{blogpost.title}}/view">view more</a></button>
+        <button type="button" class="btn btn-default"><a href="/post/{{authorID}}/{{blog_name}}/{{blogpost.title}}/view">view more</a></button>
       </div>
       {% endfor %}
       {% if moreposts %}
       <div class="span8">
-      <button type="button" class="btn btn-inverse pull-right"><a href="/blog/{{blog_name}}/{{ page_counter|int + 1 }}">older posts</a></button>
+      <button type="button" class="btn btn-inverse pull-right"><a href="/blog/{{authorID}}/{{blog_name}}/{{ page_counter|int + 1 }}">older posts</a></button>
       </div>
       {% endif %}
     </div>
