@@ -21,7 +21,7 @@ def getBlogs(authorID, blog_name = None):
     if blog_name:
         return db.GqlQuery("SELECT * FROM Blog " +
             "WHERE authorID = :1 AND title = :2 " +
-            "ORDER BY title" , blog_name, authorID)
+            "ORDER BY title" , authorID, blog_name)
     else:
         return db.GqlQuery("SELECT * FROM Blog " +
             "WHERE authorID = :1 " + 
@@ -125,30 +125,27 @@ class UserHome(webapp2.RequestHandler):
 
     def get(self):
         user = users.get_current_user()
-        
+
         if user:
             template_url= 'user_home_page.html'
             url = users.create_logout_url(self.request.uri)
             url_linktext = 'Logout'
+
+            blog_query= getBlogs(user.user_id())
+
+            blogs = blog_query.run(limit=100)
+
+            template_values = { 
+                'user' : user,
+                'url': url,
+                'url_linktext': url_linktext,
+                'blogs' : blogs
+            } 
+
+            template = JINJA_ENVIRONMENT.get_template(template_url)
+            self.response.write(template.render(template_values))
         else:
-            # template_url = 'home_page.html'
-            # url = users.create_login_url(self.request.uri)
-            # url_linktext = 'Login'
             self.redirect('/')
-
-        blog_query= getBlogs(userID)
-
-        blogs = blog_query.run(limit=100)
-
-        template_values = { 
-            'user' : user,
-            'url': url,
-            'url_linktext': url_linktext,
-            'blogs' : blogs
-        } 
-
-        template = JINJA_ENVIRONMENT.get_template(template_url)
-        self.response.write(template.render(template_values))
 
 class BlogHome(webapp2.RequestHandler):
 
@@ -170,12 +167,13 @@ class BlogHome(webapp2.RequestHandler):
 
     def get(self, authorID, blog_name, page_number):
 
+        user = users.get_current_user()
+
         if page_number and isinstance(page_number, int):
             ViewingPage = int(page_number[0])
         else:
             ViewingPage = 0
 
-        user = users.get_current_user()
         if user:
             userID = user.user_id()
             log_in_out_url = users.create_logout_url(self.request.uri)
@@ -189,9 +187,8 @@ class BlogHome(webapp2.RequestHandler):
         one_blog_query = getBlogs(authorID, blog_name)
 
         blogFound = False
-        authorNickname = "error"
         owner = False
-
+        authorNickname = "error"
         for b in one_blog_query.run(limit=1):
             blogFound = True
             owner = (user and (user.user_id() == b.authorID))
@@ -321,9 +318,10 @@ class BlogpostPage(webapp2.RequestHandler):
         one_blog_query = getBlogs(authorID, blog_name)
 
         one_blog = one_blog_query.run(limit=1)
-        
+        authorNickname = "error"
         for blog in one_blog:
             owner = (user and (user.user_id() == blog.authorID))
+            authorNickname = blog.authorNickname
                 
         edit = (mode == "edit" and owner)
 
@@ -360,6 +358,7 @@ class BlogpostPage(webapp2.RequestHandler):
             'blogpost' : blogpost,
             'blog_name': blog_name,
             'authorID': authorID,
+            'authorNickname': authorNickname,
             'one_blog': one_blog,
             'owner' : owner,
             'blog_tags' : blog_tags,
@@ -392,9 +391,11 @@ class TagSearchPage(webapp2.RequestHandler):
         one_blog_query = getBlogs(authorID, blog_name)
 
         one_blog = one_blog_query.run(limit=1)
-        
+        authorNickname = "error"
+
         for blog in one_blog:
             owner = (user and (user.user_id() == blog.authorID))
+            authorNickname = blog.authorNickname
         
         blogpost_query = getBlogPosts(authorID, blog_name, None, tag_name)
 
@@ -453,6 +454,7 @@ class TagSearchPage(webapp2.RequestHandler):
             'blogpost_content': blogpost_content,
             'blog_name': blog_name,
             'authorID': authorID,
+            'authorNickname': authorNickname,
             'one_blog': one_blog,
             'tag_name' : tag_name,
             'blog_tags' : blog_tags,

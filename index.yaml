@@ -26,6 +26,14 @@ indexes:
   properties:
   - name: authorID
   - name: blog
+  - name: tags
+  - name: date
+    direction: desc
+
+- kind: Blogpost
+  properties:
+  - name: authorID
+  - name: blog
   - name: title
   - name: date
     direction: desc

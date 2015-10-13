@@ -57,16 +57,18 @@
         <div class="span3">
           <div class="well sidebar-nav">
             <ul class="nav nav-list">
-              <li class="nav-header">Your Blogs</li>
-              {% for blog in blogs %}
-              <div>
-              <li><a href="/blog/{{blog.authorID}}/{{blog.title}}/">{{ blog.title }}</a></li>
-              </div>
-              {% endfor %}
+              {% if user %}
+                <li class="nav-header">Your Blogs</li>
+                {% for blog in blogs %}
+                <div>
+                <li><a href="/blog/{{blog.authorID}}/{{blog.title}}/">{{ blog.title }}</a></li>
+                </div>
+                {% endfor %}
+              {% endif %}
               <li class="nav-header">Tags of {{blog_name}}</li>
               {% for tag in blog_tags %}
               <div>
-              <li><a href="/search/{{blog_name}}/{{tag}}/">{{tag}}</a></li>
+              <li><a href="/search/{{authorID}}/{{blog_name}}/{{tag}}/">{{tag}}</a></li>
               </div>
               {% endfor %}
             </ul>
@@ -75,8 +77,8 @@
         <div class="span9">
           <div class="hero-unit">
             <!-- for post in blogpost-->
-            <h2>{{ blogpost.title }}</h2>
-            <h3>from {{ blog_name }}</h3>
+            <h2>{{ blogpost.title | safe}}</h2>
+            <h3>from <a href="/blog/{{ authorID }}/{{ blog_name }}/">{{ blog_name }}</a> by {{ authorNickname }}</h3>
             <hr>
             <p>{{ blogpost.content|safe }}</p>
             <hr>
@@ -88,7 +90,7 @@
             {% if owner %}
               {% if edit %}
                 <hr>
-                <form action="/post/{{blog_name}}/{{blogpost.title}}/edit" method="post">
+                <form action="/post/{{authorID}}/{{blog_name}}/{{blogpost.title}}/edit" method="post">
                   <div><textarea id="blogpost_title" name="blogpost_title" rows="1" cols="60">{{blogpost.title}}</textarea>
                   </div>
                   <div><textarea id="blogpost_content" name="blogpost_content" rows="5" cols="60">{{blogpost.content}}</textarea>

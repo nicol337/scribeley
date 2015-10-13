@@ -55,17 +55,19 @@
   <div class="row-fluid">
     <div class="span3">
       <div class="well sidebar-nav">
-        <ul class="nav nav-list">
-          <li class="nav-header">Your Blogs</li>
-          {% for blog in blogs %}
-          <div>
-          <li><a href="/blog/{{blog.authorID}}/{{blog.title}}/">{{blog.title}}</a></li>
-          </div>
-          {% endfor %}
+       <ul class="nav nav-list">
+          {% if user %}
+            <li class="nav-header">Your Blogs</li>
+            {% for blog in blogs %}
+            <div>
+            <li><a href="/blog/{{blog.authorID}}/{{blog.title}}/">{{ blog.title }}</a></li>
+            </div>
+            {% endfor %}
+          {% endif %}
           <li class="nav-header">Tags of {{blog_name}}</li>
           {% for tag in blog_tags %}
           <div>
-          <li><a href="/search/{{blog_name}}/{{tag}}/">{{tag}}</a></li>
+          <li><a href="/search/{{authorID}}/{{blog_name}}/{{tag}}/">{{tag}}</a></li>
           </div>
           {% endfor %}
         </ul>
@@ -73,28 +75,26 @@
     </div><!--/span-->
     <div class="span9">
       <div class="hero-unit">
-        <h1>{{ blog_name }}</h1>
-        {% for blog in one_blog %}
-        <h1>{{ blog.title }}</h1>
-        {% endfor %}
+        <h1><a href="/blog/{{authorID}}/{{blog_name}}/">{{blog_name}}</a></h1>
+        <h4>by {{ authorNickname }}</h4>
       </div>
       <h2>Posts tagged with {{ tag_name }}</h2>
       {% for blogpost in blogposts %}
       <div class="span8">
-        <h3>{{blogpost.title}}</h3>
+        <h3>{{blogpost.title|safe}}</h3>
         <h4>{{blogpost_content[blogpost.title]|safe}}</h4>
         <h6>{{blogpost.date}}</h6>
         <h6>tags   |
         {% for tag in blogpost.tags %}
-           <a href="/search/{{blog_name}}/{{tag}}/">{{tag}} </a>  
+           <a href="/search/{{authorID}}/{{blog_name}}/{{tag}}/">{{tag}} </a>  
         {% endfor %}
         </h6>
-        <button type="button" class="btn btn-default"><a href="/post/{{blog.authorID}}/{{blog_name}}/{{blogpost.title}}/view">view more</a></button>
+        <button type="button" class="btn btn-default"><a href="/post/{{authorID}}/{{blog_name}}/{{blogpost.title}}/view">view more</a></button>
       </div>
       {% endfor %}
       {% if moreposts %}
         <div class="span8">
-        <button type="button" class="btn btn-inverse pull-right"><a href="/search/{{blog_name}}/{{tag_name}}/{{ page_counter|int + 1 }}">older posts</a></button>
+        <button type="button" class="btn btn-inverse pull-right"><a href="/search/{{authorID}}/{{blog_name}}/{{tag_name}}/{{ page_counter|int + 1 }}">older posts</a></button>
         </div>
       {% endif %}
     </div>

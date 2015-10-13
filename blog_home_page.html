@@ -57,12 +57,14 @@
     <div class="span3">
       <div class="well sidebar-nav">
         <ul class="nav nav-list">
-          <li class="nav-header">Your Blogs</li>
-          {% for blog in blogs %}
-          <div>
-          <li><a href="/blog/{{blog.authorID}}/{{blog.title}}/">{{ blog.title }}</a></li>
-          </div>
-          {% endfor %}
+          {% if user %}
+            <li class="nav-header">Your Blogs</li>
+            {% for blog in blogs %}
+            <div>
+            <li><a href="/blog/{{blog.authorID}}/{{blog.title}}/">{{ blog.title }}</a></li>
+            </div>
+            {% endfor %}
+          {% endif %}
           <li class="nav-header">Tags of {{blog_name}}</li>
           {% for tag in blog_tags %}
           <div>
@@ -76,9 +78,6 @@
       <div class="hero-unit">
         <h1>{{ blog_name }}</h1>
         <h4>by {{ authorNickname }}</h4>
-        {% for blog in one_blog %}
-        <h1>{{ blog.title }}</h1>
-        {% endfor %}
       </div>
       {% if owner %}
       <h2>New Post</h2>
@@ -93,12 +92,12 @@
       <h2>Previous Posts</h2>
       {% for blogpost in blogposts %}
       <div class="span8">
-        <h3>{{blogpost.title}}</h3>
+        <h3>{{blogpost.title|safe}}</h3>
         <h4>{{blogpost_content[blogpost.title]|safe}}</h4>
         <h6>{{blogpost.date}}</h6>
         <h6>tags |
         {% for tag in blogpost.tags %}
-          <a href="/search/{{blog_name}}/{{tag}}/">{{tag}} </a>  
+          <a href="/search/{{authorID}}/{{blog_name}}/{{tag}}/">{{tag}} </a>  
         {% endfor %}
         </h6>
         <button type="button" class="btn btn-default"><a href="/post/{{authorID}}/{{blog_name}}/{{blogpost.title}}/view">view more</a></button>
