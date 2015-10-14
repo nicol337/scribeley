@@ -165,12 +165,13 @@ class BlogHome(webapp2.RequestHandler):
             self.redirect('/blog/' + authorID + '/' + blog_name + '/')
 
 
-    def get(self, authorID, blog_name, page_number):
+    def get(self, authorID, blog_name, page_number=0):
 
         user = users.get_current_user()
 
-        if page_number and isinstance(page_number, int):
-            ViewingPage = int(page_number[0])
+        
+        if page_number:
+            ViewingPage = int(page_number)
         else:
             ViewingPage = 0
 
@@ -198,17 +199,9 @@ class BlogHome(webapp2.RequestHandler):
         # if blogFound:
         blogpost_query = getBlogPosts(authorID, blog_name)
 
-        blogposts = blogpost_query.run(offset=(ViewingPage+1)*10)
+        number_of_posts_left = blogpost_query.count(offset=(ViewingPage+1)*10)
 
-        number_of_posts_left = 0
-
-        for blog in blogposts:
-            number_of_posts_left+=1
-
-        if number_of_posts_left:
-            moreposts = True
-        else:
-            moreposts = False
+        moreposts = bool(number_of_posts_left)
 
         blogposts = blogpost_query.run(offset=ViewingPage*10,limit=10)
 
@@ -370,10 +363,10 @@ class BlogpostPage(webapp2.RequestHandler):
 
 class TagSearchPage(webapp2.RequestHandler):
 
-    def get(self, authorID, blog_name, tag_name, page_number):
+    def get(self, authorID, blog_name, tag_name, page_number=0):
 
-        if page_number and isinstance(page_number, int):
-            ViewingPage = int(page_number[0])
+        if page_number:
+            ViewingPage = int(page_number)
         else:
             ViewingPage = 0
 
@@ -399,21 +392,9 @@ class TagSearchPage(webapp2.RequestHandler):
         
         blogpost_query = getBlogPosts(authorID, blog_name, None, tag_name)
 
-         # db.GqlQuery("SELECT * FROM Blogpost " +
-         #        "WHERE blog = :1 AND tags = :2 AND authorID = :3 " +
-         #        "ORDER BY date DESC", blog_name, tag_name, authorID)
+        number_of_posts_left = blogpost_query.count(offset=(ViewingPage+1)*10)
 
-        blogposts = blogpost_query.run(offset=(ViewingPage+1)*10)
-
-        number_of_posts_left = 0
-
-        for blog in blogposts:
-            number_of_posts_left+=1
-
-        if number_of_posts_left:
-            moreposts = True
-        else:
-            moreposts = False
+        moreposts = bool(number_of_posts_left)
 
         blogposts = blogpost_query.run(offset=ViewingPage*10,limit=10)
 

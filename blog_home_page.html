@@ -68,7 +68,7 @@
           <li class="nav-header">Tags of {{blog_name}}</li>
           {% for tag in blog_tags %}
           <div>
-          <li><a href="/search/{{blog_name}}/{{tag}}/">{{tag}}</a></li>
+          <li><a href="/search/{{authorID}}/{{blog_name}}/{{tag}}/">{{tag}}</a></li>
           </div>
           {% endfor %}
         </ul>
@@ -78,6 +78,7 @@
       <div class="hero-unit">
         <h1>{{ blog_name }}</h1>
         <h4>by {{ authorNickname }}</h4>
+        <p>page counter {{page_counter}} </p>
       </div>
       {% if owner %}
       <h2>New Post</h2>
