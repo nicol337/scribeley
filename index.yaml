@@ -15,16 +15,21 @@ indexes:
   - name: authorID
   - name: title
 
+- kind: Blog
+  properties:
+  - name: authorname
+  - name: title
+
 - kind: Blogpost
   properties:
-  - name: authorID
+  - name: authorname
   - name: blog
   - name: date
     direction: desc
 
 - kind: Blogpost
   properties:
-  - name: authorID
+  - name: authorname
   - name: blog
   - name: tags
   - name: date
@@ -32,7 +37,7 @@ indexes:
 
 - kind: Blogpost
   properties:
-  - name: authorID
+  - name: authorname
   - name: blog
   - name: title
   - name: date

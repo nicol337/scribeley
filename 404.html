@@ -41,7 +41,7 @@
             <ul class="nav">
               {% if user %}
               <li><a href="/user/">Home</a></li>
-              <li><p class="navbar-text pull-right">Logged in as {{ user }}</p></li>
+              <li><p class="navbar-text pull-right">Logged in as {{ username }}</p></li>
               <li><a href="{{ url|safe }}">{{ url_linktext }}</a></li>
               {% else %}
               <li><p class="navbar-text pull-right"><a href="{{ url|safe }}">Login</a></p></li>

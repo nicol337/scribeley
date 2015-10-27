@@ -36,12 +36,12 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="brand" href="http://scribeley.appspot.com">Scribeley</a>
+          <a class="brand" href="/">Scribeley</a>
           <div class="nav-collapse collapse">
             <ul class="nav">
               {% if user %}
               <li><a href="/user/">Home</a></li>
-              <li><p class="navbar-text pull-right">Logged in as {{ user }}</p></li>
+              <li><p class="navbar-text pull-right">Logged in as {{ username }}</p></li>
               <li><a href="{{ url|safe }}">{{ url_linktext }}</a></li>
               {% else %}
               <li><p class="navbar-text pull-right"><a href="{{ url|safe }}">Login</a></p></li>
@@ -61,14 +61,14 @@
             <li class="nav-header">Your Blogs</li>
             {% for blog in blogs %}
             <div>
-            <li><a href="/blog/{{blog.authorID}}/{{blog.title}}/">{{ blog.title }}</a></li>
+            <li><a href="/blog/{{blog.authorname}}/{{blog.title}}/">{{ blog.title }}</a></li>
             </div>
             {% endfor %}
           {% endif %}
           <li class="nav-header">Tags of {{blog_name}}</li>
           {% for tag in blog_tags %}
           <div>
-          <li><a href="/search/{{authorID}}/{{blog_name}}/{{tag}}/">{{tag}}</a></li>
+          <li><a href="/search/{{authorname}}/{{blog_name}}/{{tag}}/">{{tag}}</a></li>
           </div>
           {% endfor %}
         </ul>
@@ -77,12 +77,11 @@
     <div class="span9">
       <div class="hero-unit">
         <h1>{{ blog_name }}</h1>
-        <h4>by {{ authorNickname }}</h4>
-        <p>page counter {{page_counter}} </p>
+        <h4>by {{ authorname }}</h4>
       </div>
       {% if owner %}
       <h2>New Post</h2>
-      <form action="/blog/{{authorID}}/{{blog_name}}/" method="post">
+      <form action="/blog/{{authorname}}/{{blog_name}}/" method="post">
           Title<div><textarea id="blogpost_title" name="blogpost_title" rows="1" cols="60"></textarea>
           </div>
           Content<div><textarea id="blogpost_content" name="blogpost_content" rows="5" cols="60"></textarea></div>
@@ -98,15 +97,15 @@
         <h6>{{blogpost.date}}</h6>
         <h6>tags |
         {% for tag in blogpost.tags %}
-          <a href="/search/{{authorID}}/{{blog_name}}/{{tag}}/">{{tag}} </a>  
+          <a href="/search/{{authorname}}/{{blog_name}}/{{tag}}/">{{tag}} </a>  
         {% endfor %}
         </h6>
-        <button type="button" class="btn btn-default"><a href="/post/{{authorID}}/{{blog_name}}/{{blogpost.title}}/view">view more</a></button>
+        <button type="button" class="btn btn-default"><a href="/post/{{authorname}}/{{blog_name}}/{{blogpost.title}}/view">view more</a></button>
       </div>
       {% endfor %}
       {% if moreposts %}
       <div class="span8">
-      <button type="button" class="btn btn-inverse pull-right"><a href="/blog/{{authorID}}/{{blog_name}}/{{ page_counter|int + 1 }}">older posts</a></button>
+      <button type="button" class="btn btn-inverse pull-right"><a href="/blog/{{authorname}}/{{blog_name}}/{{ page_counter|int + 1 }}">older posts</a></button>
       </div>
       {% endif %}
     </div>

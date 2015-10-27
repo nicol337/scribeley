@@ -23,6 +23,9 @@
           padding-right: 5px;
         }
       }
+      p.error {
+          color: #E3A030;
+      }
     </style>
 
   </head>
@@ -37,42 +40,23 @@
             <span class="icon-bar"></span>
           </button>
           <a class="brand" href="http://scribeley.appspot.com">Scribeley</a>
-          <div class="nav-collapse collapse">
-            <ul class="nav">
-              {% if user %}
-              <li><a href="/user/">Home</a></li>
-              <li><p class="navbar-text pull-right">Logged in as {{ username }}</p></li>
-              <li><a href="{{ url|safe }}">{{ url_linktext }}</a></li>
-              {% else %}
-              <li><p class="navbar-text pull-right"><a href="{{ url|safe }}">Login</a></p></li>
-              {% endif %}
-            </ul>
-          </div>
         </div>
       </div>
     </div> <!-- end of nav -->
+
     <div class="container-fluid">
       <div class="row-fluid">
-        <div class="span3">
-          <div class="well sidebar-nav">
-            <ul class="nav nav-list">
-              <li class="nav-header">Your Blogs</li>
-              {% for blog in blogs %}
-              <div>
-              <li><a href="/blog/{{blog.authorname}}/{{blog.title}}/">{{blog.title}}</a></li>
-              </div>
-              {% endfor %}
-            </ul>
-          </div><!--/.well -->
-        </div><!--/span-->
-        <div class="span9">
-          <div class="hero-unit">
-            <h1>Welcome, {{ username }}!</h1>
-          </div>
-          <p>Create a new blog titled...</p>
-          <form action="/user/" method="post">
-              <div><textarea id="blog_title" name="blog_title" rows="1" cols="60"></textarea></div>
-              <div><input type="submit" value="gimme the blog"></div>
+        <div class="span8 offset2">
+          <h2>Looks like you're a new user!</h2>
+          <h3>Please select a username</h3>
+          <p>Can only contain letters, numbers, and underscores</p>
+          <p>No spaces or special characters</p>
+          {% if error != '' %}
+          <p class="error">{{ error }}</p>
+          {% endif %}
+          <form action="/username/" method="post">
+              <div><textarea id="username" name="username" rows="1" cols="60" value={{username}}></textarea></div>
+              <div><input type="submit" value="name me!"></div>
           </form>
         </div>
     </div><!--/.fluid-container-->

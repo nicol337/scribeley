@@ -1,3 +1,5 @@
+# ??? add redirect to username page if a user signs in on any page and doesn't have a username picked yet.
+
 import os
 import cgi
 import urllib
@@ -17,29 +19,38 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 
 ViewingPage = 0
 
-def getBlogs(authorID, blog_name = None):
+def getBlogsQuery(authorname, blog_name = None):
     if blog_name:
         return db.GqlQuery("SELECT * FROM Blog " +
-            "WHERE authorID = :1 AND title = :2 " +
-            "ORDER BY title" , authorID, blog_name)
+            "WHERE authorname = :1 AND title = :2 " +
+            "ORDER BY title" , authorname, blog_name)
     else:
         return db.GqlQuery("SELECT * FROM Blog " +
-            "WHERE authorID = :1 " + 
-            "ORDER BY title", authorID)
+            "WHERE authorname = :1 " + 
+            "ORDER BY title", authorname)
 
-def getBlogPosts(authorID, blog_name, blog_post_name = None, tag_name = None):
+def getBlogPostsQuery(authorname, blog_name, blog_post_name = None, tag_name = None):
     if blog_post_name:
         return db.GqlQuery("SELECT * FROM Blogpost " +
-            "WHERE authorID = :1 AND blog = :2 AND title = :3 " +
-            "ORDER BY date DESC", authorID, blog_name, blog_post_name)
+            "WHERE authorname = :1 AND blog = :2 AND title = :3 " +
+            "ORDER BY date DESC", authorname, blog_name, blog_post_name)
     elif tag_name:
         return db.GqlQuery("SELECT * FROM Blogpost " +
-            "WHERE authorID = :1 AND blog = :2 AND tags = :3 " +
-            "ORDER BY date DESC", authorID, blog_name, tag_name)
+            "WHERE authorname = :1 AND blog = :2 AND tags = :3 " +
+            "ORDER BY date DESC", authorname, blog_name, tag_name)
     else:
         return db.GqlQuery("SELECT * FROM Blogpost " +
-            "WHERE authorID = :1 AND blog = :2 " +
-            "ORDER BY date DESC", authorID, blog_name)
+            "WHERE authorname = :1 AND blog = :2 " +
+            "ORDER BY date DESC", authorname, blog_name)
+
+def getUsername(userID):
+    user_pref_query = db.GqlQuery("SELECT * FROM UserPref " +
+        "WHERE userID = :1", userID)
+    user_pref = user_pref_query.run(limit=1)
+
+    for pref in user_pref:
+        return pref.username
+    return None
 
 def to_link(str):
     new_link='<a href="'+str+'">'+str+'</a>'
@@ -47,13 +58,16 @@ def to_link(str):
         new_link = str
     return jinja2.Markup(new_link)
 
+class UserPref(db.Model):
+    userID = db.StringProperty(required=True)
+    username = db.StringProperty(required=True)
+
 class Blog(db.Model):
-    authorID = db.StringProperty(required=True)
-    authorNickname = db.StringProperty(required=True)
+    authorname = db.StringProperty(required=True)
     title = db.StringProperty(required=True)
 
 class Blogpost(db.Model):
-    authorID = db.StringProperty(required=True)
+    authorname = db.StringProperty(required=True)
     title = db.StringProperty(required=True)
     content = db.TextProperty()
     tags = db.StringListProperty()
@@ -72,16 +86,19 @@ class ErrorPage(webapp2.RequestHandler):
         user = users.get_current_user()
 
         if user:
+            username = getUsername(user.user_id())
             url = users.create_logout_url(self.request.uri)
             url_linktext = 'Logout'
         else:
+            username =''
             url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
 
         template_values = { 
-            'user' : user,
+            'user': user,
             'url': url,
-            'url_linktext': url_linktext
+            'url_linktext': url_linktext,
+            'username': username
         }   
     
         template = JINJA_ENVIRONMENT.get_template('404.html')
@@ -93,14 +110,19 @@ class HomePage(webapp2.RequestHandler):
         user = users.get_current_user()
 
         if user:
+            username = getUsername(user.user_id())
+            if not username:
+                self.redirect('/username/')
             url = users.create_logout_url(self.request.uri)
             url_linktext = 'Logout'
         else:
+            username = ''
             url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
 
         template_values = { 
             'user' : user,
+            'username': username,
             'url': url,
             'url_linktext': url_linktext
         }   
@@ -108,38 +130,56 @@ class HomePage(webapp2.RequestHandler):
         template = JINJA_ENVIRONMENT.get_template('home_page.html')
         self.response.write(template.render(template_values))
 
-class UserHome(webapp2.RequestHandler):
+class UsernamePage(webapp2.RequestHandler):
+
+    def isInvalid(self,username):
+        invalidCharacters = re.compile('[[\w]*[\W]+[\w]*]*')
+        return bool(invalidCharacters.match(username))
+
+    def isTaken(self, username):
+        user_pref_query = db.GqlQuery("SELECT * FROM UserPref " +
+        "WHERE username = :1", username)
+        user_pref = user_pref_query.run(limit=1)
+
+        for pref in user_pref:
+            return True
+        return False
 
     def post(self):
-        """Create a new blog for the logged-in user."""
-        new_blog_name = self.request.get('blog_title')
+        """Set a username"""
+        username = self.request.get('username').strip()
         user = users.get_current_user()
-        if new_blog_name:
-            new_authorID = user.user_id()
-            new_authorNickname = user.nickname()
-            new_blog = Blog(authorID=new_authorID,authorNickname=new_authorNickname,title=new_blog_name)
-            new_blog.put()
-            self.redirect('/blog/'+new_authorID+'/'+new_blog_name+'/')
+        '''
+        if no username entered
+        if username is taken
+        if username is already the username the user has
+        if the username is invalid
+
+        '''
+        if not username or self.isInvalid(username):
+            self.get('Please enter a valid username', username)
+        elif self.isTaken(username):
+            # ? consider if the username is taken by the person already
+            self.get('This username is already taken', username)
         else:
+            userpref = UserPref(username=username, userID=user.user_id())
+            userpref.put()
             self.redirect('/user/')
 
-    def get(self):
+    def get(self, error='', username=''):
         user = users.get_current_user()
 
         if user:
-            template_url= 'user_home_page.html'
+            template_url= 'username_page.html'
             url = users.create_logout_url(self.request.uri)
             url_linktext = 'Logout'
-
-            blog_query= getBlogs(user.user_id())
-
-            blogs = blog_query.run(limit=100)
 
             template_values = { 
                 'user' : user,
                 'url': url,
                 'url_linktext': url_linktext,
-                'blogs' : blogs
+                'error': error,
+                'username': username
             } 
 
             template = JINJA_ENVIRONMENT.get_template(template_url)
@@ -147,57 +187,111 @@ class UserHome(webapp2.RequestHandler):
         else:
             self.redirect('/')
 
+class UserHome(webapp2.RequestHandler):
+
+    def post(self):
+        """Create a new blog for the logged-in user."""
+        new_blog_name = self.request.get('blog_title')
+        user = users.get_current_user()
+        username = getUsername(user.user_id())
+
+        if new_blog_name:
+            new_blog = Blog(authorname=username,title=new_blog_name)
+            new_blog.put()
+            self.redirect('/blog/'+username+'/'+new_blog_name+'/')
+        else:
+            self.redirect('/user/')
+
+    def get(self):
+        user = users.get_current_user()
+        
+        if user:
+            username = getUsername(user.user_id())
+
+            if not username:
+                self.redirect('/username/')
+
+            else:
+                template_url= 'user_home_page.html'
+                url = users.create_logout_url(self.request.uri)
+                url_linktext = 'Logout'
+
+                blog_query= getBlogsQuery(username)
+
+                blogs = blog_query.run(limit=100)
+
+                template_values = { 
+                    'user' : user,
+                    'username': username,
+                    'url': url,
+                    'url_linktext': url_linktext,
+                    'blogs' : blogs
+                } 
+
+                template = JINJA_ENVIRONMENT.get_template(template_url)
+                self.response.write(template.render(template_values))
+        else:
+            self.redirect('/')
+
 class BlogHome(webapp2.RequestHandler):
 
-    def post(self, authorID, blog_name, page_number):
+    def post(self, authorname, blog_name, page_number):
         blogpost_title = self.request.get('blogpost_title')
         blogpost_content = self.request.get('blogpost_content')
+        user = users.get_current_user()
+        username = getUsername(user.user_id())
         if blogpost_title and blogpost_content:
 
             blogpost_tags = self.request.get('blogpost_tags')
             tag_tokens = [tag.strip() for tag in blogpost_tags.split(',')]
 
-            blogpost = Blogpost(authorID=authorID, title=blogpost_title, content=blogpost_content, blog=blog_name, tags=tag_tokens)
+            blogpost = Blogpost(authorname=username, title=blogpost_title, content=blogpost_content, blog=blog_name, tags=tag_tokens)
             blogpost.put()
 
-            self.redirect('/blog/' + authorID + '/' + blog_name + '/')
+            self.redirect('/blog/' + username + '/' + blog_name + '/')
         else:
-            self.redirect('/blog/' + authorID + '/' + blog_name + '/')
+            self.redirect('/blog/' + username + '/' + blog_name + '/')
 
 
-    def get(self, authorID, blog_name, page_number=0):
+    def get(self, authorname, blog_name, page_number=0):
 
         user = users.get_current_user()
 
-        
         if page_number:
             ViewingPage = int(page_number)
         else:
             ViewingPage = 0
 
+
         if user:
-            userID = user.user_id()
+            username = getUsername(user.user_id())
+            if not username:
+                self.redirect('/username/')
             log_in_out_url = users.create_logout_url(self.request.uri)
             url_linktext = 'Logout'
+
+            blog_query = getBlogsQuery(username)
+            blogs = blog_query.run(limit=1000)
         else:
-            userID = ""
+            username = ''
             template_url = 'home_page.html'
             log_in_out_url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
+            blogs = []
 
-        one_blog_query = getBlogs(authorID, blog_name)
+        one_blog_query = getBlogsQuery(authorname, blog_name)
 
         blogFound = False
         owner = False
-        authorNickname = "error"
+        authorname = "error"
         for b in one_blog_query.run(limit=1):
             blogFound = True
-            owner = (user and (user.user_id() == b.authorID))
+            owner = (user and (username == b.authorname))
             # owner = (str(user.user_id()) == str(b.authorID))
-            authorNickname = b.authorNickname
+            authorname = b.authorname
 
         # if blogFound:
-        blogpost_query = getBlogPosts(authorID, blog_name)
+        blogpost_query = getBlogPostsQuery(authorname, blog_name)
 
         number_of_posts_left = blogpost_query.count(offset=(ViewingPage+1)*10)
 
@@ -224,29 +318,24 @@ class BlogHome(webapp2.RequestHandler):
                     blog_tags.append(tag)
         blog_tags.sort()
             
-        if user:
-            blog_query = getBlogs(user.user_id())
-            blogs = blog_query.run(limit=1000)    
-
-        else:
-            blogs = []
+        
 
         template_values = { 
             'user' : user,
-            'userID': userID,
             'url': log_in_out_url,
             'url_linktext': url_linktext,
+            'username': username,
             'blogs' : blogs,
             'blogposts' : blogposts,
             'blog_name': blog_name,
-            'authorID': authorID,
-            'authorNickname': authorNickname,
+            'authorname': authorname,
             'blogpost_content' : blogpost_content,
             'blog_tags': blog_tags,
             'owner' : owner,
             'moreposts' : moreposts,
             'page_counter': ViewingPage
         } 
+
         template = JINJA_ENVIRONMENT.get_template("blog_home_page.html")
         self.response.write(template.render(template_values))
 
@@ -265,21 +354,24 @@ class BlogpostPage(webapp2.RequestHandler):
             or tok.endswith(".int") or tok.endswith(".mil"))
 
 
-    def post(self, authorID, blog_name, blogpost_name, mode):
+    def post(self, authorname, blog_name, blogpost_name, mode):
 
         user = users.get_current_user()
+        username = getUsername(user.user_id())
+
         owner = False
 
-        one_blog_query = getBlogs(authorID, blog_name)
+        one_blog_query = getBlogsQuery(authorname, blog_name)
 
         one_blog = one_blog_query.run(limit=1)
         
         for blog in one_blog:
-            owner = (user and (user.user_id() == blog.authorID))
+
+            owner = (user and (username == blog.authorname))
 
         edit = (mode == "edit" and owner == True)
 
-        blogpost_query = getBlogPosts(authorID, blog_name, blogpost_name)
+        blogpost_query = getBlogPostsQuery(authorname, blog_name, blogpost_name)
 
         blogpost = blogpost_query.run(limit=1)
         new_title = self.request.get('blogpost_title')
@@ -291,36 +383,42 @@ class BlogpostPage(webapp2.RequestHandler):
             for post in blogpost:
                 post.update(new_title, new_content, new_tags)
 
-        self.redirect('/post/'+authorID+'/'+blog_name+'/'+new_title+"/view")
+        self.redirect('/post/'+authorname+'/'+blog_name+'/'+new_title+"/view")
 
-    def get(self, authorID, blog_name, blogpost_name, mode):
+    def get(self, authorname, blog_name, blogpost_name, mode):
 
         user = users.get_current_user()
+
         owner = False
 
         if user:
-            userID = user.user_id()
+            username = getUsername(user.user_id())
+            if not username:
+                self.redirect('/username/')
             log_in_out_url = users.create_logout_url(self.request.uri)
             url_linktext = 'Logout'
+
+            blog_query = getBlogsQuery(username)
+            blogs = blog_query.run(limit=1000)
+
         else:
-            userID = ""
+            username = ''
             template_url = 'home_page.html'
             log_in_out_url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
+            blogs = []
 
-        one_blog_query = getBlogs(authorID, blog_name)
+        one_blog_query = getBlogsQuery(authorname, blog_name)
 
         one_blog = one_blog_query.run(limit=1)
-        authorNickname = "error"
         for blog in one_blog:
-            owner = (user and (user.user_id() == blog.authorID))
-            authorNickname = blog.authorNickname
+            owner = (user and (username == blog.authorname))
                 
         edit = (mode == "edit" and owner)
 
-        blog_tags_query = getBlogPosts(authorID, blog_name)
+        blog_tags_query = getBlogPostsQuery(authorname, blog_name)
 
-        blogpost_query = getBlogPosts(authorID, blog_name, blogpost_name)
+        blogpost_query = getBlogPostsQuery(authorname, blog_name, blogpost_name)
 
         blog_tags=[]
         for post in blog_tags_query.run(limit=1000):
@@ -337,21 +435,15 @@ class BlogpostPage(webapp2.RequestHandler):
                     post.content=post.content.replace(tok,to_link(tok))
             blogpost = post
 
-        if user:
-            blog_query = getBlogs(user.user_id())
-            blogs = blog_query.run(limit=1000)   
-        else:
-            blogs = []
-
         template_values = { 
             'user' : user,
+            'username': username,
             'url': log_in_out_url,
             'url_linktext': url_linktext,
             'blogs' : blogs,
             'blogpost' : blogpost,
             'blog_name': blog_name,
-            'authorID': authorID,
-            'authorNickname': authorNickname,
+            'authorname': authorname,
             'one_blog': one_blog,
             'owner' : owner,
             'blog_tags' : blog_tags,
@@ -363,7 +455,7 @@ class BlogpostPage(webapp2.RequestHandler):
 
 class TagSearchPage(webapp2.RequestHandler):
 
-    def get(self, authorID, blog_name, tag_name, page_number=0):
+    def get(self, authorname, blog_name, tag_name, page_number=0):
 
         if page_number:
             ViewingPage = int(page_number)
@@ -371,26 +463,33 @@ class TagSearchPage(webapp2.RequestHandler):
             ViewingPage = 0
 
         user = users.get_current_user()
+
         owner = False
 
         if user:
+            username = getUsername(user.user_id())
+            if not username:
+                self.redirect('/username/')
             log_in_out_url = users.create_logout_url(self.request.uri)
             url_linktext = 'Logout'
+
+            blog_query = getBlogsQuery(username)
+            blogs = blog_query.run(limit=1000)
         else:
+            username = ''
             template_url = 'home_page.html'
             log_in_out_url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
+            blogs = []
 
-        one_blog_query = getBlogs(authorID, blog_name)
+        one_blog_query = getBlogsQuery(authorname, blog_name)
 
         one_blog = one_blog_query.run(limit=1)
-        authorNickname = "error"
 
         for blog in one_blog:
-            owner = (user and (user.user_id() == blog.authorID))
-            authorNickname = blog.authorNickname
+            owner = (user and (username == blog.authorname))
         
-        blogpost_query = getBlogPosts(authorID, blog_name, None, tag_name)
+        blogpost_query = getBlogPostsQuery(authorname, blog_name, None, tag_name)
 
         number_of_posts_left = blogpost_query.count(offset=(ViewingPage+1)*10)
 
@@ -411,7 +510,7 @@ class TagSearchPage(webapp2.RequestHandler):
                 if tok.startswith("http://") or tok.startswith("https://"):
                     blogpost_content[key]=blogpost_content[key].replace(tok,to_link(tok))
 
-        blog_tags_query = getBlogPosts(authorID, blog_name) 
+        blog_tags_query = getBlogPostsQuery(authorname, blog_name) 
 
         blog_tags=[]
 
@@ -419,23 +518,17 @@ class TagSearchPage(webapp2.RequestHandler):
             for tag in post.tags:
                 if tag not in blog_tags:
                     blog_tags.append(tag)
-        if user:
-            blog_query = getBlogs(user.user_id())
-            blogs = blog_query.run(limit=1000)   
-
-        else:
-            blogs = []
 
         template_values = { 
             'user' : user,
+            'username': username,
             'url': log_in_out_url,
             'url_linktext': url_linktext,
             'blogs' : blogs,
             'blogposts' : blogposts,
             'blogpost_content': blogpost_content,
             'blog_name': blog_name,
-            'authorID': authorID,
-            'authorNickname': authorNickname,
+            'authorname': authorname,
             'one_blog': one_blog,
             'tag_name' : tag_name,
             'blog_tags' : blog_tags,
@@ -447,10 +540,16 @@ class TagSearchPage(webapp2.RequestHandler):
         template = JINJA_ENVIRONMENT.get_template("tag_search_page.html")
         self.response.write(template.render(template_values))
 
+# need more specific routes so that Error handling works
 application = webapp2.WSGIApplication([
     ('/', HomePage),
     (r'/user/', UserHome),
-    (r'/blog/(.*)/(.*)/(.*)', BlogHome),
+    (r'/username/', UsernamePage),
+    (r'/blog/(.*)/(.*)/(.*)', BlogHome), 
+    #(r'/blog/([^/]*)/([^/]*)[/(.*)|/]?', BlogHome), 
+    # /blog/authorname/blogname
+    # /blog/authorname/blogname/
+    # /blog/authorname/blogname/pagenumber
     (r'/post/(.*)/(.*)/(.*)/(.*)', BlogpostPage),
     (r'/search/(.*)/(.*)/(.*)/(.*)', TagSearchPage),
     ('/error/', ErrorPage)
