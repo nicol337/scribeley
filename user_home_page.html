@@ -23,6 +23,9 @@
           padding-right: 5px;
         }
       }
+      p.error {
+          color: #E3A030;
+      }
     </style>
 
   </head>
@@ -69,7 +72,12 @@
           <div class="hero-unit">
             <h1>Welcome, {{ username }}!</h1>
           </div>
+          <p>Only use letters, numbers, and hyphens</p>
+          {% if error %}
+          <p class="error">{{ error }}</p>
+          {% else %}
           <p>Create a new blog titled...</p>
+          {% endif %}
           <form action="/user/" method="post">
               <div><textarea id="blog_title" name="blog_title" rows="1" cols="60"></textarea></div>
               <div><input type="submit" value="gimme the blog"></div>

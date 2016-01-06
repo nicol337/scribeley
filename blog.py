@@ -52,6 +52,7 @@ def getUsername(userID):
         return pref.username
     return None
 
+
 def to_link(str):
     new_link='<a href="'+str+'">'+str+'</a>'
     if str.endswith(".jpg") or str.endswith(".png") or str.endswith(".gif"):
@@ -134,7 +135,7 @@ class UsernamePage(webapp2.RequestHandler):
 
     def isInvalid(self,username):
         invalidCharacters = re.compile('[[\w]*[\W]+[\w]*]*')
-        return bool(invalidCharacters.match(username))
+        return bool(invalidCharacters.search(username))
 
     def isTaken(self, username):
         user_pref_query = db.GqlQuery("SELECT * FROM UserPref " +
@@ -159,7 +160,6 @@ class UsernamePage(webapp2.RequestHandler):
         if not username or self.isInvalid(username):
             self.get('Please enter a valid username', username)
         elif self.isTaken(username):
-            # ? consider if the username is taken by the person already
             self.get('This username is already taken', username)
         else:
             userpref = UserPref(username=username, userID=user.user_id())
@@ -188,6 +188,9 @@ class UsernamePage(webapp2.RequestHandler):
             self.redirect('/')
 
 class UserHome(webapp2.RequestHandler):
+    def isInvalid(self,new_blog_name):
+        invalidCharacters = re.compile('[^a-zA-Z0-9-]+')
+        return bool(invalidCharacters.search(username))
 
     def post(self):
         """Create a new blog for the logged-in user."""
@@ -196,13 +199,24 @@ class UserHome(webapp2.RequestHandler):
         username = getUsername(user.user_id())
 
         if new_blog_name:
-            new_blog = Blog(authorname=username,title=new_blog_name)
-            new_blog.put()
-            self.redirect('/blog/'+username+'/'+new_blog_name+'/')
+            blog_name_query = getBlogsQuery(username, new_blog_name)
+            duplicateBlogFound = bool(blog_name_query.count())
+
+            if isInvalid(new_blog_name):
+                error = new_blog_name+" is an invalid blog name"
+                self.get(error)
+            elif duplicateBlogFound:
+                error = 'You already have a blog titled '+new_blog_name
+                self.get(error)
+            else:
+                new_blog = Blog(authorname=username,title=new_blog_name)
+                new_blog.put()
+                self.redirect('/blog/'+username+'/'+new_blog_name+'/')
+                
         else:
             self.redirect('/user/')
 
-    def get(self):
+    def get(self,error=None):
         user = users.get_current_user()
         
         if user:
@@ -225,7 +239,8 @@ class UserHome(webapp2.RequestHandler):
                     'username': username,
                     'url': url,
                     'url_linktext': url_linktext,
-                    'blogs' : blogs
+                    'blogs': blogs,
+                    'error': error
                 } 
 
                 template = JINJA_ENVIRONMENT.get_template(template_url)
@@ -240,6 +255,7 @@ class BlogHome(webapp2.RequestHandler):
         blogpost_content = self.request.get('blogpost_content')
         user = users.get_current_user()
         username = getUsername(user.user_id())
+        
         if blogpost_title and blogpost_content:
 
             blogpost_tags = self.request.get('blogpost_tags')
@@ -541,12 +557,15 @@ class TagSearchPage(webapp2.RequestHandler):
         self.response.write(template.render(template_values))
 
 # need more specific routes so that Error handling works
+# .* is not acceptable, what if the blog doesn't exist and someone tries to access that page
+
 application = webapp2.WSGIApplication([
     ('/', HomePage),
     (r'/user/', UserHome),
     (r'/username/', UsernamePage),
     (r'/blog/(.*)/(.*)/(.*)', BlogHome), 
     #(r'/blog/([^/]*)/([^/]*)[/(.*)|/]?', BlogHome), 
+    # these urls should be supported and not go to 404 page
     # /blog/authorname/blogname
     # /blog/authorname/blogname/
     # /blog/authorname/blogname/pagenumber
