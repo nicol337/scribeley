@@ -61,14 +61,14 @@
                 <li class="nav-header">Your Blogs</li>
                 {% for blog in blogs %}
                 <div>
-                <li><a href="/blog/{{blog.authorname}}/{{blog.title}}/">{{ blog.title }}</a></li>
+                <li><a href="/blog/{{blog.authorname}}/{{blog.urltitle}}/">{{ blog.title }}</a></li>
                 </div>
                 {% endfor %}
               {% endif %}
               <li class="nav-header">Tags of {{blog_name}}</li>
               {% for tag in blog_tags %}
               <div>
-              <li><a href="/search/{{authorname}}/{{blog_name}}/{{tag}}/">{{tag}}</a></li>
+              <li><a href="/search/{{authorname}}/{{blog_urltitle}}/{{tag}}/">{{tag}}</a></li>
               </div>
               {% endfor %}
             </ul>
@@ -78,7 +78,7 @@
           <div class="hero-unit">
             <!-- for post in blogpost-->
             <h2>{{ blogpost.title | safe}}</h2>
-            <h3>from <a href="/blog/{{ authorname }}/{{ blog_name }}/">{{ blog_name }}</a> by {{ authorname }}</h3>
+            <h3>from <a href="/blog/{{ authorname }}/{{ blog_urltitle }}/">{{ blog_name }}</a> by {{ authorname }}</h3>
             <hr>
             <p>{{ blogpost.content|safe }}</p>
             <hr>
@@ -90,7 +90,8 @@
             {% if owner %}
               {% if edit %}
                 <hr>
-                <form action="/post/{{authorname}}/{{blog_name}}/{{blogpost.title}}/edit" method="post">
+
+                <form action="/post/{{authorname}}/{{blog_urltitle}}/{{blogpost.title}}/edit" method="post">
                   <div><textarea id="blogpost_title" name="blogpost_title" rows="1" cols="60">{{blogpost.title}}</textarea>
                   </div>
                   <div><textarea id="blogpost_content" name="blogpost_content" rows="5" cols="60">{{blogpost.content}}</textarea>
@@ -100,7 +101,7 @@
                   <input type="submit" value="submit changes"></div>
                 </form>
               {% else %}
-                <form action="/post/{{authorname}}/{{blog_name}}/{{blogpost.title}}/edit" method="get">
+                <form action="/post/{{authorname}}/{{blog_urltitle}}/{{blogpost.title}}/edit" method="get">
                   <input type="submit" value="edit"></div>
                 </form>
             {% endif %}
